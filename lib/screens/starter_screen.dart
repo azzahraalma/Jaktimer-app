@@ -231,7 +231,7 @@ class _StarterScreenState extends State<StarterScreen>
 
           // ── BOTTOM WHITE SECTION — pakai ClipPath dengan ConcaveTopClipper ──
           Expanded(
-            flex: 35,
+            flex: 45,
             child: SlideTransition(
               position: _shapeSlide,
               child: ClipPath(
