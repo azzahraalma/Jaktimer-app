@@ -1,0 +1,37 @@
+name: jaktimer
+description: Jelajah Kuliner & Ruang Terbuka Jakarta Timur
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  shared_preferences: ^2.2.2
+  cached_network_image: ^3.3.1
+  flutter_rating_bar: ^4.0.1
+  intl: ^0.19.0
+  shimmer: ^3.0.0
+  geolocator: ^11.0.0
+  permission_handler: ^11.3.0
+  image_picker: ^1.0.0
+  geocoding: ^3.0.0
+  google_fonts: ^6.2.0
+  share_plus: ^7.0.0
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.1
+  http: ^1.2.0     
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  #assets:
+    #- assets/images/
