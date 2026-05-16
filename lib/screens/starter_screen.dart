@@ -1,10 +1,138 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 
-class StarterScreen extends StatelessWidget {
+// Custom clipper yang bikin lekukan cekung ke dalam (huruf U) di bagian atas
+class ConcaveTopClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    const double curveDepth = 60.0; // seberapa dalam lekukan ke bawah
+
+    // Mulai dari pojok kiri atas (y = 0)
+    path.moveTo(0, 0);
+
+    // Lekukan cekung — control point di tengah bawah
+    // sehingga bagian tengah atas melengkung TURUN ke bawah (bentuk U)
+    path.cubicTo(
+      size.width * 0.25, curveDepth,   // control point kiri (turun)
+      size.width * 0.75, curveDepth,   // control point kanan (turun)
+      size.width, 0,                   // titik akhir pojok kanan atas
+    );
+
+    // Lanjut ke kanan bawah, kiri bawah, kembali ke titik awal
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class StarterScreen extends StatefulWidget {
   const StarterScreen({super.key});
 
+  @override
+  State<StarterScreen> createState() => _StarterScreenState();
+}
+
+class _StarterScreenState extends State<StarterScreen>
+    with SingleTickerProviderStateMixin {
   static const _orange = Color(0xFFFF8C00);
+
+  late final AnimationController _ctrl;
+
+  late final Animation<Offset> _shapeSlide;
+  late final Animation<Offset> _titleSlide;
+  late final Animation<double>  _titleFade;
+
+  late final Animation<Offset> _imageSlide;
+  late final Animation<double>  _imageFade;
+
+  late final Animation<Offset> _taglineSlide;
+  late final Animation<double>  _taglineFade;
+
+  late final Animation<Offset> _buttonSlide;
+  late final Animation<double>  _buttonFade;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _shapeSlide = Tween<Offset>(
+      begin: const Offset(0, 0.18),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.00, 0.75, curve: Curves.easeOutCubic),
+    ));
+
+    _titleSlide = Tween<Offset>(
+      begin: const Offset(0, 0.6),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.08, 0.60, curve: Curves.easeOutCubic),
+    ));
+    _titleFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl,
+          curve: const Interval(0.08, 0.45, curve: Curves.easeOut)),
+    );
+
+    _imageSlide = Tween<Offset>(
+      begin: const Offset(0, 0.7),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.18, 0.68, curve: Curves.easeOutCubic),
+    ));
+    _imageFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl,
+          curve: const Interval(0.18, 0.50, curve: Curves.easeOut)),
+    );
+
+    _taglineSlide = Tween<Offset>(
+      begin: const Offset(0, 0.8),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.30, 0.78, curve: Curves.easeOutCubic),
+    ));
+    _taglineFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl,
+          curve: const Interval(0.30, 0.60, curve: Curves.easeOut)),
+    );
+
+    _buttonSlide = Tween<Offset>(
+      begin: const Offset(0, 1.0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.45, 0.95, curve: Curves.easeOutCubic),
+    ));
+    _buttonFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _ctrl,
+          curve: const Interval(0.45, 0.75, curve: Curves.easeOut)),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,73 +147,73 @@ class StarterScreen extends StatelessWidget {
             flex: 55,
             child: Stack(
               children: [
-                // Orange background
                 Container(color: _orange),
 
-                // White wave at the bottom of orange section
-                Positioned(
-                  bottom: -20, // ← naikin wave ke atas
-                  left: 0,
-                  right: 0,
-                  child: CustomPaint(
-                    size: Size(MediaQuery.of(context).size.width, 60),
-                    painter: _WavePainter(),
-                  ),
-                ),
-
-                // Content inside orange
                 SafeArea(
                   bottom: false,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // ── Title ──
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(24, 32, 24, 24),
-                        child: Center(
-                          child: Text(
-                            'Jaktimer',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 62,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
+                      // Judul Jaktimer
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                        child: FadeTransition(
+                          opacity: _titleFade,
+                          child: SlideTransition(
+                            position: _titleSlide,
+                            child: Center(
+                              child: Text(
+                                'Jaktimer',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 62,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
 
-                      // ── Mascot image box ──
+                      // Mascot image
                       SizedBox(
                         height: screenHeight * 0.32,
                         child: Center(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(32, 0, 32, 40),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF5ECECA),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Image.network(
-                                  'https://api.dicebear.com/9.x/thumbs/png?seed=Timo&backgroundColor=5ececa&shapeColor=4fc3c8&eyes=variant2W10&mouth=variant1',
-                                  fit: BoxFit.contain,
-                                  loadingBuilder: (_, child, progress) {
-                                    if (progress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
+                            child: FadeTransition(
+                              opacity: _imageFade,
+                              child: SlideTransition(
+                                position: _imageSlide,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF5ECECA),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: Image.network(
+                                      'https://api.dicebear.com/9.x/thumbs/png?seed=Timo&backgroundColor=5ececa&shapeColor=4fc3c8&eyes=variant2W10&mouth=variant1',
+                                      fit: BoxFit.contain,
+                                      loadingBuilder: (_, child, progress) {
+                                        if (progress == null) return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (_, __, ___) =>
+                                          const Center(
+                                        child: Icon(
+                                          Icons.sentiment_very_satisfied_rounded,
+                                          size: 100,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                    );
-                                  },
-                                  errorBuilder: (_, __, ___) => const Center(
-                                    child: Icon(
-                                      Icons.sentiment_very_satisfied_rounded,
-                                      size: 100,
-                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
@@ -101,83 +229,102 @@ class StarterScreen extends StatelessWidget {
             ),
           ),
 
-          // ── BOTTOM WHITE SECTION ───────────────────────────────────────────
+          // ── BOTTOM WHITE SECTION — pakai ClipPath dengan ConcaveTopClipper ──
           Expanded(
-            flex: 45,
-            child: Container(
-              color: Colors.white,
-              width: double.infinity,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  32,
-                  screenHeight * 0.01, // dinaikin dikit
-                  32,
-                  screenHeight * 0.04,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start, // dinaikin
-                  children: [
-                    SizedBox(height: 50),
-                    // ── Tagline ──
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontSize: 28, // lebih gede
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF333333),
-                          height: 1.5,
-                        ),
-                        children: [
-                          TextSpan(
-                            text:
-                                'Yuk, jelajah Jakarta Timur\ndan belajar bareng\n',
-                          ),
-                          TextSpan(
-                            text: 'Si Timo',
-                            style: TextStyle(
-                              color: _orange,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 48,
+            flex: 35,
+            child: SlideTransition(
+              position: _shapeSlide,
+              child: ClipPath(
+                clipper: ConcaveTopClipper(),
+                child: Container(
+                  color: Colors.white,
+                  width: double.infinity,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      32,
+                      screenHeight * 0.01,
+                      32,
+                      screenHeight * 0.04,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 70), // sedikit lebih tinggi karena ada lekukan
+
+                        // Tagline
+                        FadeTransition(
+                          opacity: _taglineFade,
+                          child: SlideTransition(
+                            position: _taglineSlide,
+                            child: RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF333333),
+                                  height: 1.5,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text:
+                                        'Yuk, jelajah Jakarta Timur\ndan belajar bareng\n',
+                                  ),
+                                  TextSpan(
+                                    text: 'Si Timo',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: _orange,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 48,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
 
-                    SizedBox(height: screenHeight * 0.03),
+                        SizedBox(height: screenHeight * 0.03),
 
-                    // ── Mulai Button ──
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
+                        // Tombol Mulai
+                        FadeTransition(
+                          opacity: _buttonFade,
+                          child: SlideTransition(
+                            position: _buttonSlide,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginScreen(),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 6,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 14,
+                                ),
+                              ),
+                              child: Text(
+                                'Mulai',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _orange,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
                         ),
-                        elevation: 6, // shadow lebih bagus
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32, // pas ukuran teks
-                          vertical: 14,
-                        ),
-                      ),
-                      child: const Text(
-                        'Mulai',
-                        style: TextStyle(
-                          fontSize: 22, // teks lebih gede
-                          fontWeight: FontWeight.w900, // lebih bold
-                          color: Colors.white,
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -186,30 +333,4 @@ class StarterScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-// ─── Wave painter untuk transisi orange → white ────────────────────────────
-class _WavePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white;
-    final path = Path();
-
-    // wave lebih landai (U tipis)
-    path.moveTo(0, 0);
-    path.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.9, // lebih kecil biar ga terlalu lengkung
-      size.width,
-      0,
-    );
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_WavePainter oldDelegate) => false;
 }

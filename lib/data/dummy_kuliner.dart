@@ -918,6 +918,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'jumlah_ulasan': 0,
   'image_asset':
       'assets/images/kuliner/HALWA-KITCHEN-CIRACAS.jpg',
+  'latitude': -6.338354126534888,
   'longitude': 106.9030,
   'jam_buka': '06:00',
   'jam_tutup': '18:00',

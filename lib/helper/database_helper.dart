@@ -25,7 +25,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'jaktimer.db');
     return await openDatabase(
       path,
-      version: 11,
+      version: 12, // bump version agar onUpgrade jalan
       onCreate: _createTables,
       onUpgrade: _onUpgrade,
     );
@@ -36,7 +36,7 @@ class DatabaseHelper {
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 11) {
+    if (oldVersion < 12) {
       await db.execute('DROP TABLE IF EXISTS users');
       await db.execute('DROP TABLE IF EXISTS kuliner');
       await db.execute('DROP TABLE IF EXISTS ruang_terbuka');
@@ -50,7 +50,7 @@ class DatabaseHelper {
       await db.execute('DROP TABLE IF EXISTS daily_checkin');
       await db.execute('DROP TABLE IF EXISTS badges');
       await db.execute('DROP TABLE IF EXISTS misi_log');
-      await _createTables(db, newVersion); // FIX: hapus duplikat, cukup 1x
+      await _createTables(db, newVersion);
     }
   }
 
@@ -76,6 +76,7 @@ class DatabaseHelper {
       )
     ''');
 
+    // ── image_url → image_asset ────────────────────────────────────────────
     await db.execute('''
       CREATE TABLE kuliner (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +89,7 @@ class DatabaseHelper {
         harga_max INTEGER,
         rating REAL DEFAULT 0,
         jumlah_ulasan INTEGER DEFAULT 0,
-        image_url TEXT,
+        image_asset TEXT,
         latitude REAL,
         longitude REAL,
         jam_buka TEXT,
@@ -100,6 +101,7 @@ class DatabaseHelper {
       )
     ''');
 
+    // ── image_url → image_asset ────────────────────────────────────────────
     await db.execute('''
       CREATE TABLE ruang_terbuka (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,7 +116,7 @@ class DatabaseHelper {
         jam_tutup TEXT,
         rating REAL DEFAULT 0,
         jumlah_ulasan INTEGER DEFAULT 0,
-        image_url TEXT,
+        image_asset TEXT,
         latitude REAL,
         longitude REAL,
         tiket TEXT DEFAULT 'Gratis',
@@ -124,7 +126,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // FIX: tambah koma yang hilang setelah 'tempat_nama TEXT'
     await db.execute('''
       CREATE TABLE ulasan_ruang (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,7 +159,7 @@ class DatabaseHelper {
         judul TEXT NOT NULL,
         isi TEXT NOT NULL,
         kategori TEXT,
-        image_url TEXT,
+        image_asset TEXT,
         author TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
@@ -291,7 +292,11 @@ class DatabaseHelper {
     });
 
     for (final k in dummyKulinerData) {
-      await db.insert('kuliner', k);
+      // Sanitize: pastikan latitude ada (HALWA KITCHEN tidak punya)
+      final row = Map<String, dynamic>.from(k);
+      row['latitude'] ??= 0.0;
+      row['longitude'] ??= 0.0;
+      await db.insert('kuliner', row);
     }
 
     for (final r in dummyRuangTerbukaData) {
@@ -316,7 +321,6 @@ class DatabaseHelper {
   static String _formatDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  // ─── Level thresholds ────────────────────────────────────────────────────
   static int _levelFromXp(int xp) {
     if (xp >= 5000) return 5;
     if (xp >= 3000) return 4;
