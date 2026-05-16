@@ -64,7 +64,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       duration: const Duration(milliseconds: 5500),
     );
 
-    // Fase 1 (0.00–0.18): teks oranye fade in
+    // Frame 1
     _textOrangeIn = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -72,7 +72,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Fase 2 (0.22–0.40): dot kecil jatuh dari atas
+    // Frame 2
     _dotY = Tween<double>(begin: -160, end: 0).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -86,7 +86,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Fase 3 (0.40–0.60): dot membesar jadi ~110r
+    // Frame 3
     _circleRadius = Tween<double>(begin: 14, end: 110).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -94,7 +94,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Fase 3b: teks ganti warna pas dot nyentuh tengah
+    // Frame 4
     _textOrangeOut = Tween<double>(begin: 1, end: 0).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -146,12 +146,9 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    // Jarak dari titik TENGAH layar ke SUDUT terjauh pakai Pythagoras
-    // = sqrt((w/2)² + (h/2)²), dikali 1.3 buat buffer supaya pasti nutup
     final double fullRadius =
         sqrt(size.width * size.width + size.height * size.height) * 1.3;
 
-    // Fase 4 (0.60–0.84): circle fill full screen
     final fillAnim = Tween<double>(
       begin: 110,
       end: fullRadius,
@@ -167,7 +164,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       builder: (context, _) {
         final t = _ctrl.value;
 
-        // ── Radius circle aktif ──
         final double radius;
         if (t < 0.22) {
           radius = 0;
@@ -179,7 +175,6 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
           radius = fillAnim.value;
         }
 
-        // ── Opacity teks oranye ──
         final double orangeOp;
         if (t < 0.18) {
           orangeOp = _textOrangeIn.value;
@@ -191,10 +186,8 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
           orangeOp = 0.0;
         }
 
-        // ── Opacity teks putih ──
         final double whiteOp = t >= 0.42 ? _textWhiteIn.value : 0.0;
 
-        // ── Background snap ke oranye begitu circle full ──
         final bool isFull = t >= 0.84;
 
         return Scaffold(
@@ -204,7 +197,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
               alignment: Alignment.center,
               clipBehavior: Clip.none,
               children: [
-                // 1. Teks oranye di tengah
+                // 1. Teks oren tengah
                 if (orangeOp > 0)
                   Opacity(
                     opacity: orangeOp.clamp(0.0, 1.0),
@@ -218,7 +211,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     ),
                   ),
 
-                // 2. Circle oranye tumbuh dari tengah
+                // 2. Circle oren gerak
                 if (radius > 0)
                   Transform.translate(
                     offset: Offset(0, t < 0.40 ? _dotY.value : 0),
@@ -232,7 +225,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     ),
                   ),
 
-                // 3. Teks putih di atas circle
+                // 3. Teks putih down
                 if (whiteOp > 0)
                   Opacity(
                     opacity: whiteOp.clamp(0.0, 1.0),

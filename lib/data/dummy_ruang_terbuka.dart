@@ -17,7 +17,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'rating': 4.5,
     'jumlah_ulasan': 78,
     'image_asset':
-        'assets/images/ruang/PTRA Caktim Tersenyum.jpg',
+        'assets/images/ruang/RPTRA Caktim Tersenyum.jpg',
     'latitude': -6.1815,
     'longitude': 106.9490,
     'tiket': 'Gratis',
@@ -261,7 +261,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'rating': 4.4,
     'jumlah_ulasan': 2122,
     'image_asset':
-        'assets/images/ruang/Taman Segitiga Intirub.jpg',
+        'assets/images/ruang/Intirub Triangle Park.jpg',
     'latitude': -6.2487,
     'longitude': 106.8844,
     'tiket': 'Gratis',
@@ -359,7 +359,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'rating': 4.3,
     'jumlah_ulasan': 274,
     'image_asset':
-        'assets/images/ruang/Taman Bronbeek,jpg',
+        'assets/images/ruang/Taman Bronbeek.jpg',
     'latitude': -6.2110,
     'longitude': 106.8687,
     'tiket': 'Gratis',
@@ -532,7 +532,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'rating': 4.4,
     'jumlah_ulasan': 249,
     'image_asset':
-        'assets/images/ruang/RPTRA Ciracas Prima.jpg',
+        'assets/images/ruang/RPTRA Ciracas Prima.jpeg',
     'latitude': -6.3422,
     'longitude': 106.8861,
     'tiket': 'Gratis',
@@ -654,7 +654,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'rating': 4.6,
     'jumlah_ulasan': 1638,
     'image_asset':
-        'assets/images/ruang/Taman Cijantung.jpg',
+        'assets/images/ruang/Cijantung Park.jpeg',
     'latitude': -6.3022,
     'longitude': 106.8610,
     'tiket': 'Gratis',

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.jaktimer_app"
+    namespace = "com.example.jaktimer"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

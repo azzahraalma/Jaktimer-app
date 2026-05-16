@@ -83,7 +83,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
     }).toList();
   }
 
-  // ── Badge helper ──────────────────────────────────────────────────────────
+  //  Badge helper 
   Future<void> _checkAndShowBadges() async {
     if (widget.userId == null) return;
     final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!);
@@ -96,7 +96,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
     }
   }
 
-  // ── Misi callbacks ────────────────────────────────────────────────────────
+  //  Misi callbacks 
   Future<void> _onReviewSubmitted() async {
     if (widget.misiKode == 'tambah_review_ruang' &&
         widget.onMisiSelesai != null) {
@@ -342,7 +342,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
             : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // ── HEADER ───────────────────────────────────────────────
+                  //  HEADER 
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -467,7 +467,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                     ),
                   ),
 
-                  // ── FEATURED ─────────────────────────────────────────────
+                  //  FEATURED 
                   if (featured != null)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -593,7 +593,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                       ),
                     ),
 
-                  // ── GRID ─────────────────────────────────────────────────
+                  //  GRID 
                   if (gridItems.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -624,7 +624,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                       ),
                     ),
 
-                  // ── LIST ─────────────────────────────────────────────────
+                  //  LIST 
                   if (listItems.isNotEmpty)
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),

@@ -3,7 +3,7 @@ import '../helper/database_helper.dart';
 
 class UlasanListScreen extends StatefulWidget {
   final int tempatId;
-  final String tipe; // 'kuliner' atau 'ruang_terbuka'
+  final String tipe; 
   final String namaTempat;
 
   const UlasanListScreen({
@@ -23,8 +23,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
   List<Map<String, dynamic>> _ulasanList = [];
   bool _isLoading = true;
 
-  // Filter state
-  int _filterRating = 0; // 0 = semua
+  int _filterRating = 0; 
 
   @override
   void initState() {
@@ -94,7 +93,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
               : CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                    // ── SUMMARY CARD ──────────────────────────────
+                    // summary
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -102,7 +101,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // ── FILTER CHIPS ──────────────────────────────
+                    // filter
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -110,7 +109,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // ── JUMLAH HASIL ──────────────────────────────
+                    // hasil
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -124,7 +123,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // ── LIST ULASAN ───────────────────────────────
+                    // list review
                     _filteredUlasan.isEmpty
                         ? SliverToBoxAdapter(child: _buildEmptyFilter())
                         : SliverPadding(
@@ -141,13 +140,12 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // ── APP BAR ────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: true, // FIX: title jadi center
+      centerTitle: true, 
       leading: GestureDetector(
         onTap: () => Navigator.pop(context),
         child: Container(
@@ -162,7 +160,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
         ),
       ),
       title: Column(
-        crossAxisAlignment: CrossAxisAlignment.center, // FIX: center
+        crossAxisAlignment: CrossAxisAlignment.center, 
         children: [
           const Text(
             'Semua Ulasan',
@@ -181,7 +179,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center, // FIX: center
+            textAlign: TextAlign.center, 
           ),
         ],
       ),
@@ -189,7 +187,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // ── SUMMARY CARD ───────────────────────────────────────────────────
+  // summary
   Widget _buildSummaryCard() {
     final avg = _avgRating;
     final dist = _ratingDistribution;
@@ -205,7 +203,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left: big avg
           Column(
             children: [
               Text(
@@ -244,7 +241,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
 
           const SizedBox(width: 20),
 
-          // Right: bar chart per bintang
           Expanded(
             child: Column(
               children: List.generate(5, (i) {
@@ -307,7 +303,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // ── FILTER CHIPS ───────────────────────────────────────────────────
+  // rating filter
   Widget _buildFilterChips() {
     final options = [
       {'label': 'Semua', 'value': 0},
@@ -359,7 +355,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // ── ULASAN ITEM ────────────────────────────────────────────────────
   Widget _buildUlasanItem(Map<String, dynamic> u) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -367,8 +362,7 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF9F5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          // FIX: withOpacity deprecated → withValues
+        border: Border.all( 
           color: const Color(0xFFFBD2B6).withValues(alpha: 0.6),
         ),
       ),
@@ -437,7 +431,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // ── EMPTY STATES ───────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(

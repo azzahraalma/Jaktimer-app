@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../data/artikel.dart';
@@ -25,15 +27,13 @@ class DatabaseHelper {
     final path = join(dbPath, 'jaktimer.db');
     return await openDatabase(
       path,
-      version: 12, // bump version agar onUpgrade jalan
+      version: 12,
       onCreate: _createTables,
       onUpgrade: _onUpgrade,
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // MIGRATION
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 12) {
@@ -54,9 +54,7 @@ class DatabaseHelper {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // CREATE TABLES
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _createTables(Database db, int version) async {
     await db.execute('''
@@ -76,7 +74,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // ── image_url → image_asset ────────────────────────────────────────────
     await db.execute('''
       CREATE TABLE kuliner (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +98,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // ── image_url → image_asset ────────────────────────────────────────────
     await db.execute('''
       CREATE TABLE ruang_terbuka (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -252,9 +248,7 @@ class DatabaseHelper {
     await _insertDummyData(db);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // SEED DATA
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _seedKuisFromJson(Database db) async {
     for (final a in artikelData) {
@@ -285,14 +279,13 @@ class DatabaseHelper {
       'level': 1,
       'xp': 0,
       'level_name': 'Explorer Muda',
-      'avatar_url': 'https://api.dicebear.com/7.x/adventurer/png?seed=Timo',
+      'avatar_url': null,
       'image_path': null,
       'security_question': 'Nama hewan peliharaan pertamamu?',
       'security_answer': 'kucing',
     });
 
     for (final k in dummyKulinerData) {
-      // Sanitize: pastikan latitude ada (HALWA KITCHEN tidak punya)
       final row = Map<String, dynamic>.from(k);
       row['latitude'] ??= 0.0;
       row['longitude'] ??= 0.0;
@@ -314,9 +307,7 @@ class DatabaseHelper {
     await _seedKuisFromJson(db);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // HELPER
-  // ═══════════════════════════════════════════════════════════════════════════
 
   static String _formatDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -344,9 +335,32 @@ class DatabaseHelper {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  static String getMascotAsset(int level) {
+    switch (level) {
+      case 5:
+        return 'assets/images/mascot/timo_4.png';
+      case 4:
+        return 'assets/images/mascot/timo_3.png';
+      case 3:
+        return 'assets/images/mascot/timo_2.png';
+      case 2:
+        return 'assets/images/mascot/timo_5.png';
+      default:
+        return 'assets/images/mascot/timo_6.png';
+    }
+  }
+
+  static const String defaultAvatarAsset = 'assets/images/mascot/timo_9.jpg';
+
+  static ImageProvider getAvatarProvider(Map<String, dynamic> user) {
+    final imagePath = user['image_path'] as String?;
+    if (imagePath != null && imagePath.isNotEmpty) {
+      return FileImage(File(imagePath));
+    }
+    return const AssetImage(defaultAvatarAsset);
+  }
+
   // ARTIKEL
-  // ═══════════════════════════════════════════════════════════════════════════
 
   List<Map<String, dynamic>> getAllArtikel() => List.from(artikelData);
 
@@ -373,9 +387,7 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getArtikelById(int id) async =>
       getArtikelByIdJson(id);
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // KUIS ARTIKEL
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<bool> hasKuisCompleted(int userId, int artikelId) async {
     final db = await database;
@@ -423,9 +435,7 @@ class DatabaseHelper {
     return res.map((r) => r['artikel_id'] as int).toList();
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // KUIS HARIAN
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Map<String, dynamic> getKuisHarianUntukUser(int userId) {
     final now = DateTime.now();
@@ -543,9 +553,7 @@ class DatabaseHelper {
     return streak;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // KULINER
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> getKuliner({
     String? search,
@@ -589,9 +597,7 @@ class DatabaseHelper {
     return await db.insert('kuliner', kuliner);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // RUANG TERBUKA
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> getRuangTerbuka({
     String? search,
@@ -625,9 +631,7 @@ class DatabaseHelper {
     return await db.insert('ruang_terbuka', ruang);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // ULASAN
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> getUlasan(
       int tempatId, String tipe) async {
@@ -660,9 +664,7 @@ class DatabaseHelper {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // USER
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<Map<String, dynamic>?> getUserById(int id) async {
     final db = await database;
@@ -759,11 +761,22 @@ class DatabaseHelper {
     return true;
   }
 
+  /// Simpan path foto lokal (dari kamera / galeri) ke kolom image_path
   Future<void> updateUserImagePath(int userId, String imagePath) async {
     final db = await database;
     await db.update(
       'users',
       {'image_path': imagePath},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<void> removeUserImagePath(int userId) async {
+    final db = await database;
+    await db.update(
+      'users',
+      {'image_path': null},
       where: 'id = ?',
       whereArgs: [userId],
     );
@@ -792,9 +805,7 @@ class DatabaseHelper {
     await db.update('users', data, where: 'id = ?', whereArgs: [userId]);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // DAILY CHECKIN
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<bool> dailyCheckin(int userId) async {
     final db = await database;
@@ -980,9 +991,7 @@ class DatabaseHelper {
     return anyRow.isNotEmpty;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // BADGES
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> getUserBadges(int userId) async {
     final db = await database;
@@ -1007,9 +1016,7 @@ class DatabaseHelper {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // SEARCH
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<List<Map<String, dynamic>>> searchAll(String query) async {
     final db = await database;
@@ -1035,9 +1042,7 @@ class DatabaseHelper {
     return [...kuliner, ...ruang, ...artikelHits];
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // MISI
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<bool> completeMisi(int userId, String misiKode) async {
     final db = await database;
@@ -1087,9 +1092,7 @@ class DatabaseHelper {
     return (res.first['total'] as int?) ?? 0;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // XP LOG
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> logXp(int userId, int xp, String keterangan) async {
     final db = await database;
@@ -1118,9 +1121,7 @@ class DatabaseHelper {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // STATISTIK USER
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<int> getTotalTempat(int userId) async {
     final db = await database;
@@ -1156,9 +1157,7 @@ class DatabaseHelper {
     return (r1.first['c'] as int) + (r2.first['c'] as int);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // LEGACY
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<Map<String, dynamic>?> getKuisHariIni() async =>
       getKuisHarianUntukUser(1);

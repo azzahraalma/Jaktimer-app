@@ -1,4 +1,3 @@
-// lib/widgets/location_permission_dialog.dart
 import 'package:flutter/material.dart';
 
 class LocationPermissionDialog extends StatelessWidget {

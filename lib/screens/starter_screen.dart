@@ -2,25 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_screen.dart';
 
-// Custom clipper yang bikin lekukan cekung ke dalam (huruf U) di bagian atas
 class ConcaveTopClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    const double curveDepth = 60.0; // seberapa dalam lekukan ke bawah
+    const double curveDepth = 60.0;
 
-    // Mulai dari pojok kiri atas (y = 0)
     path.moveTo(0, 0);
-
-    // Lekukan cekung — control point di tengah bawah
-    // sehingga bagian tengah atas melengkung TURUN ke bawah (bentuk U)
     path.cubicTo(
-      size.width * 0.25, curveDepth,   // control point kiri (turun)
-      size.width * 0.75, curveDepth,   // control point kanan (turun)
-      size.width, 0,                   // titik akhir pojok kanan atas
+      size.width * 0.25, curveDepth,
+      size.width * 0.75, curveDepth,
+      size.width, 0,
     );
-
-    // Lanjut ke kanan bawah, kiri bawah, kembali ke titik awal
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
@@ -47,16 +40,16 @@ class _StarterScreenState extends State<StarterScreen>
 
   late final Animation<Offset> _shapeSlide;
   late final Animation<Offset> _titleSlide;
-  late final Animation<double>  _titleFade;
+  late final Animation<double> _titleFade;
 
   late final Animation<Offset> _imageSlide;
-  late final Animation<double>  _imageFade;
+  late final Animation<double> _imageFade;
 
   late final Animation<Offset> _taglineSlide;
-  late final Animation<double>  _taglineFade;
+  late final Animation<double> _taglineFade;
 
   late final Animation<Offset> _buttonSlide;
-  late final Animation<double>  _buttonFade;
+  late final Animation<double> _buttonFade;
 
   @override
   void initState() {
@@ -83,7 +76,8 @@ class _StarterScreenState extends State<StarterScreen>
       curve: const Interval(0.08, 0.60, curve: Curves.easeOutCubic),
     ));
     _titleFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _ctrl,
+      CurvedAnimation(
+          parent: _ctrl,
           curve: const Interval(0.08, 0.45, curve: Curves.easeOut)),
     );
 
@@ -95,7 +89,8 @@ class _StarterScreenState extends State<StarterScreen>
       curve: const Interval(0.18, 0.68, curve: Curves.easeOutCubic),
     ));
     _imageFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _ctrl,
+      CurvedAnimation(
+          parent: _ctrl,
           curve: const Interval(0.18, 0.50, curve: Curves.easeOut)),
     );
 
@@ -107,7 +102,8 @@ class _StarterScreenState extends State<StarterScreen>
       curve: const Interval(0.30, 0.78, curve: Curves.easeOutCubic),
     ));
     _taglineFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _ctrl,
+      CurvedAnimation(
+          parent: _ctrl,
           curve: const Interval(0.30, 0.60, curve: Curves.easeOut)),
     );
 
@@ -119,7 +115,8 @@ class _StarterScreenState extends State<StarterScreen>
       curve: const Interval(0.45, 0.95, curve: Curves.easeOutCubic),
     ));
     _buttonFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _ctrl,
+      CurvedAnimation(
+          parent: _ctrl,
           curve: const Interval(0.45, 0.75, curve: Curves.easeOut)),
     );
 
@@ -142,21 +139,18 @@ class _StarterScreenState extends State<StarterScreen>
       backgroundColor: _orange,
       body: Column(
         children: [
-          // ── TOP ORANGE SECTION ─────────────────────────────────────────────
           Expanded(
             flex: 55,
             child: Stack(
               children: [
                 Container(color: _orange),
-
                 SafeArea(
                   bottom: false,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Judul Jaktimer
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 8), 
                         child: FadeTransition(
                           opacity: _titleFade,
                           child: SlideTransition(
@@ -177,45 +171,19 @@ class _StarterScreenState extends State<StarterScreen>
                         ),
                       ),
 
-                      // Mascot image
-                      SizedBox(
-                        height: screenHeight * 0.32,
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(32, 0, 32, 40),
-                            child: FadeTransition(
-                              opacity: _imageFade,
-                              child: SlideTransition(
-                                position: _imageSlide,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF5ECECA),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Image.network(
-                                      'https://api.dicebear.com/9.x/thumbs/png?seed=Timo&backgroundColor=5ececa&shapeColor=4fc3c8&eyes=variant2W10&mouth=variant1',
-                                      fit: BoxFit.contain,
-                                      loadingBuilder: (_, child, progress) {
-                                        if (progress == null) return child;
-                                        return const Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (_, __, ___) =>
-                                          const Center(
-                                        child: Icon(
-                                          Icons.sentiment_very_satisfied_rounded,
-                                          size: 100,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                      Expanded(
+                        child: FadeTransition(
+                          opacity: _imageFade,
+                          child: SlideTransition(
+                            position: _imageSlide,
+                            child: Align(
+                              alignment: const Alignment(-0.16, 0.0),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 20),
+                                child: Image.asset(
+                                  'assets/images/mascot/timo_2.png',
+                                  height: screenHeight * 0.42,
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ),
@@ -229,7 +197,7 @@ class _StarterScreenState extends State<StarterScreen>
             ),
           ),
 
-          // ── BOTTOM WHITE SECTION — pakai ClipPath dengan ConcaveTopClipper ──
+          //  BOTTOM WHITE SECTION 
           Expanded(
             flex: 45,
             child: SlideTransition(
@@ -249,7 +217,7 @@ class _StarterScreenState extends State<StarterScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 70), // sedikit lebih tinggi karena ada lekukan
+                        const SizedBox(height: 70),
 
                         // Tagline
                         FadeTransition(

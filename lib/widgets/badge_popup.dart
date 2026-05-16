@@ -1,4 +1,3 @@
-// lib/widgets/badge_popup.dart
 import 'package:flutter/material.dart';
 
 class BadgePopup extends StatefulWidget {
@@ -94,7 +93,6 @@ class _BadgePopupState extends State<BadgePopup>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Badge icon container
                     Container(
                       width: 48,
                       height: 48,
@@ -115,7 +113,6 @@ class _BadgePopupState extends State<BadgePopup>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Label badge baru
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),

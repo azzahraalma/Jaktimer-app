@@ -11,10 +11,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../helper/database_helper.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reusable bottom-sheet launcher
-// ─────────────────────────────────────────────────────────────────────────────
-
 Future<void> showTambahKulinerSheet(
   BuildContext context, {
   bool fromMisi = false,
@@ -30,10 +26,6 @@ Future<void> showTambahKulinerSheet(
     ),
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom-sheet wrapper
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _KulinerFormSheet extends StatelessWidget {
   final bool fromMisi;
@@ -81,10 +73,6 @@ class _KulinerFormSheet extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Standalone screen
-// ─────────────────────────────────────────────────────────────────────────────
-
 class TambahKulinerScreen extends StatelessWidget {
   final Function(Map<String, dynamic>)? onSubmit;
   final bool fromMisi;
@@ -113,10 +101,6 @@ class TambahKulinerScreen extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Nominatim suggestion model
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _PlaceSuggestion {
   final String displayName;
   final String shortName;
@@ -141,10 +125,6 @@ class _PlaceSuggestion {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Core form
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _KulinerFormBody extends StatefulWidget {
   final ScrollController? scrollController;
@@ -181,23 +161,20 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
   File? _selectedImage;
   bool  _isSaving = false;
 
-  // ── Map ────────────────────────────────────────────────────────────────────
   bool   _showMap   = false;
   LatLng _pinLatLng = const LatLng(-6.2615, 106.9005);
   final  MapController _mapController = MapController();
 
-  // ── Nominatim search ───────────────────────────────────────────────────────
   List<_PlaceSuggestion> _suggestions   = [];
   bool  _loadingSuggest = false;
   bool  _showDropdown   = false;
   Timer? _debounce;
 
-  // ── Bounding box Jakarta Timur ─────────────────────────────────────────────
+  // bounding box Jakarta Timur 
   static bool _isInJakTim(double lat, double lon) =>
       lat >= -6.37 && lat <= -6.19 &&
       lon >= 106.82 && lon <= 106.98;
 
-  // ── Fasilitas ──────────────────────────────────────────────────────────────
   static const _fasilitasOptions = [
     {'label': 'Makan di Tempat', 'icon': Icons.restaurant_rounded},
     {'label': 'Delivery',        'icon': Icons.delivery_dining_rounded},
@@ -213,7 +190,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
   final Set<String> _selectedFasilitas = {};
 
-  // ── Colors ─────────────────────────────────────────────────────────────────
   static const _orange       = Color(0xFFF7924A);
   static const _orangeLight  = Color(0xFFFFF2E8);
   static const _orangeBorder = Color(0xFFFBD2B6);
@@ -234,7 +210,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     super.dispose();
   }
 
-  // ── Dialog: lokasi di luar Jakarta Timur ───────────────────────────────────
+  // lokasi di luar Jakarta Timur 
   Future<void> _showOutOfAreaDialog() async {
     return showDialog(
       context: context,
@@ -306,13 +282,11 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Image picker ────────────────────────────────────────────────────────────
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _selectedImage = File(picked.path));
   }
 
-  // ── Snackbar (oranye) ───────────────────────────────────────────────────────
   void _showSnack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -329,7 +303,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Nominatim search ────────────────────────────────────────────────────────
   Future<void> _onSearchChanged(String value) async {
     _debounce?.cancel();
     if (value.trim().length < 2) {
@@ -370,7 +343,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     });
   }
 
-  // ── Tap suggestion ──────────────────────────────────────────────────────────
   Future<void> _onSuggestionTap(_PlaceSuggestion s) async {
     if (!_isInJakTim(s.lat, s.lon)) {
       await _showOutOfAreaDialog();
@@ -391,7 +363,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     });
   }
 
-  // ── GPS ─────────────────────────────────────────────────────────────────────
   Future<void> _goToMyLocation() async {
     try {
       LocationPermission perm = await Geolocator.checkPermission();
@@ -417,7 +388,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     }
   }
 
-  // ── Reverse geocode ─────────────────────────────────────────────────────────
   Future<void> _reverseGeocode(LatLng latlng) async {
     try {
       final uri = Uri.parse(
@@ -454,11 +424,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     } catch (_) {}
   }
 
-  // ── Save ─────────────────────────────────────────────────────────────────────
-  // Perubahan utama:
-  // - Hapus XP popup dari sini
-  // - Jika fromMisi: langsung tutup form, lalu panggil onMisiSelesai
-  //   (XP popup akan muncul di DailyCheckinScreen via _completeMisi)
   Future<void> _save() async {
     if (_namaController.text.trim().isEmpty) {
       _showSnack('Nama tempat wajib diisi!');
@@ -497,8 +462,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     }
 
     if (widget.fromMisi) {
-      // Tutup form dulu, baru panggil callback misi selesai.
-      // XP popup ditangani di DailyCheckinScreen lewat _completeMisi.
       widget.onClose?.call();
       Navigator.pop(context);
       await Future.delayed(const Duration(milliseconds: 300));
@@ -513,7 +476,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -526,7 +488,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // ── Header ──────────────────────────────────────────────────────
               Row(
                 children: [
                   const Expanded(
@@ -558,14 +519,12 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 20),
 
-              // ── Foto ────────────────────────────────────────────────────────
               _buildLabel('Unggah Foto'),
               const SizedBox(height: 8),
               _PhotoPicker(image: _selectedImage, onTap: _pickImage),
 
               const SizedBox(height: 18),
 
-              // ── Nama ────────────────────────────────────────────────────────
               _buildLabel('Nama Tempat'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -575,7 +534,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Kategori ────────────────────────────────────────────────────
               _buildLabel('Kategori'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -587,7 +545,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Lokasi ──────────────────────────────────────────────────────
               _buildLabel('Lokasi'),
               const SizedBox(height: 4),
               const Text(
@@ -602,7 +559,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 10),
 
-              // Toggle peta
               GestureDetector(
                 onTap: () => setState(() => _showMap = !_showMap),
                 child: Container(
@@ -645,7 +601,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Harga ────────────────────────────────────────────────────────
               _buildLabel('Range Harga (Rp)'),
               const SizedBox(height: 8),
               Row(
@@ -670,7 +625,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Jam operasional ─────────────────────────────────────────────
               _buildLabel('Jam Operasional'),
               const SizedBox(height: 8),
               Row(
@@ -696,7 +650,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Fasilitas ───────────────────────────────────────────────────
               _buildLabel('Fasilitas'),
               const SizedBox(height: 10),
               _FasilitasPicker(
@@ -713,7 +666,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Tentang ─────────────────────────────────────────────────────
               _buildLabel('Tentang'),
               const SizedBox(height: 8),
               Container(
@@ -739,7 +691,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
           ),
         ),
 
-        // ── Tombol Simpan ───────────────────────────────────────────────────
         Positioned(
           bottom: 0,
           left: 0,
@@ -792,7 +743,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Location search bar ─────────────────────────────────────────────────────
   Widget _buildLocationSearch() {
     return Container(
       decoration: BoxDecoration(
@@ -852,7 +802,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Suggestions dropdown ────────────────────────────────────────────────────
   Widget _buildSuggestionsDropdown() {
     return Container(
       margin: const EdgeInsets.only(top: 4),
@@ -939,7 +888,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Mini map ────────────────────────────────────────────────────────────────
   Widget _buildMiniMap() {
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -1069,7 +1017,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
-  // ── Helper widgets ──────────────────────────────────────────────────────────
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -1107,10 +1054,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-widgets
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PhotoPicker extends StatelessWidget {
   final File? image;

@@ -1,4 +1,3 @@
-// lib/widgets/xp_popup.dart
 import 'package:flutter/material.dart';
 
 class XpPopup extends StatefulWidget {

@@ -1,4 +1,3 @@
-// lib/helper/badge_helper.dart
 import 'package:flutter/material.dart';
 import '../helper/database_helper.dart';
 import '../widgets/badge_popup.dart';
@@ -6,9 +5,7 @@ import '../widgets/badge_popup.dart';
 class BadgeHelper {
   static final DatabaseHelper _db = DatabaseHelper();
 
-  // ── Definisi semua badge ─────────────────────────────────────────────────
   static const Map<String, Map<String, String>> badgeDefinitions = {
-    // Level badges
     'Explorer Muda': {
       'icon': '🗺️',
       'deskripsi': 'Capai Level 1: Explorer Muda',
@@ -29,7 +26,6 @@ class BadgeHelper {
       'icon': '👑',
       'deskripsi': 'Capai Level 5: Penakluk',
     },
-    // Pencapaian badges
     'Juara Konsistensi': {
       'icon': '🔥',
       'deskripsi': 'Check-in selama 7 hari berturut-turut',
@@ -68,7 +64,6 @@ class BadgeHelper {
     },
   };
 
-  /// Cek dan award badge, return list badge baru yang berhasil diraih
   static Future<List<Map<String, String>>> checkAndAwardBadges(
       int userId) async {
     final List<Map<String, String>> newBadges = [];
@@ -77,7 +72,6 @@ class BadgeHelper {
     if (user == null) return newBadges;
 
     final level = user['level'] as int? ?? 1;
-    // levelName dipakai untuk award level badge yang sesuai level saat ini
     final levelBadgeNames = [
       'Explorer Muda',
       'Explorer Sejati',
@@ -86,7 +80,6 @@ class BadgeHelper {
       'Penakluk',
     ];
 
-    // ── Level badges ─────────────────────────────────────────────────────
     if (level >= 1 && level <= 5) {
       final badgeName = levelBadgeNames[level - 1];
       final awarded = await _tryAwardBadge(userId, badgeName);
@@ -95,7 +88,6 @@ class BadgeHelper {
       }
     }
 
-    // ── Check-in streak badges ───────────────────────────────────────────
     final streak = await _db.getCurrentStreak(userId);
     if (streak >= 1) {
       final awarded = await _tryAwardBadge(userId, 'First Explorer');
@@ -125,7 +117,6 @@ class BadgeHelper {
       }
     }
 
-    // ── Artikel / kuis badges ────────────────────────────────────────────
     final totalArtikel = await _db.getTotalArtikelDibaca(userId);
     if (totalArtikel >= 10) {
       final awarded = await _tryAwardBadge(userId, 'Penggemar Budaya');
@@ -137,7 +128,6 @@ class BadgeHelper {
       }
     }
 
-    // ── Ulasan badges ────────────────────────────────────────────────────
     final totalUlasan = await _db.getTotalUlasan(userId);
     if (totalUlasan >= 10) {
       final kulinerUlasan =
@@ -174,7 +164,6 @@ class BadgeHelper {
       }
     }
 
-    // ── Tempat ditambahkan badges ────────────────────────────────────────
     final totalKulinerAdded = await _db.getTotalKulinerAdded(userId);
     if (totalKulinerAdded >= 5) {
       final awarded = await _tryAwardBadge(userId, 'Pemburu Kuliner');
@@ -209,7 +198,6 @@ class BadgeHelper {
     return true;
   }
 
-  /// Tampilkan badge popup satu per satu secara queue via Overlay
   static void showBadgeQueue({
     required BuildContext context,
     required List<Map<String, String>> badges,

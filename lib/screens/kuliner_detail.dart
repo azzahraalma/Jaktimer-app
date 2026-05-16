@@ -57,7 +57,7 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
     setState(() => _ulasanList = ulasan);
   }
 
-  // ── Badge: cek dan tampilkan via overlay ──────────────────────────────────
+  //  Badge: cek dan tampilkan via overlay 
   Future<void> _checkAndShowBadges() async {
     final newBadges =
         await BadgeHelper.checkAndAwardBadges(1); // userId default 1

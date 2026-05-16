@@ -70,7 +70,6 @@ class DailyCheckinFloat extends StatelessWidget {
 
                 child: Stack(
                   children: [
-                    // fill
                     ClipPath(
                       clipper: TrapezoidClipper(),
                       child: Container(
@@ -80,7 +79,6 @@ class DailyCheckinFloat extends StatelessWidget {
                       ),
                     ),
 
-                    // outline
                     CustomPaint(
                       size: const Size(120, 90),
                       painter: TrapezoidBorderPainter(),
@@ -134,7 +132,6 @@ class DailyCheckinFloat extends StatelessWidget {
                 ),
               ),
 
-              // ── BUTTON (OVERLAP BAWAH SHAPE) ─────────
               Positioned(
                 top: 120,
 

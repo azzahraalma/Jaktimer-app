@@ -25,7 +25,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   static const _orange      = Color(0xFFFF8C00);
   static const _bgField     = Color(0xFFF5F5F5);
   static const _borderField = Color(0xFFE8E8E8);
-  static const _teal        = Color(0xFF5ECECA);
 
   @override
   void dispose() {
@@ -50,7 +49,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final db    = DatabaseHelper();
 
-      // registerUser() return Future<int> → lastInsertRowId = userId baru
       final newId = await db.registerUser({
         'username'          : username,
         'email'             : email,
@@ -66,7 +64,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // ✅ Simpan session ke SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('userId', newId);
 
@@ -160,7 +157,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ─── Widgets ──────────────────────────────────────────────────────────────
 
   Widget _buildHeader(String title) {
     return Padding(
@@ -190,29 +186,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildMascot() {
     return Center(
-      child: Container(
-        width: 200,
-        height: 200,
-        decoration: BoxDecoration(
-          color: _teal,
-          borderRadius: BorderRadius.circular(12),
-        ),
+      child: SizedBox(
+        width: 300,
+        height: 300,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            'https://api.dicebear.com/9.x/thumbs/png?seed=Timo&backgroundColor=5ececa&shapeColor=4fc3c8&eyes=variant2W10&mouth=variant1',
+          child: Image.asset(
+            'assets/images/mascot/timo_7.png', // path ke file lokal
             fit: BoxFit.contain,
-            loadingBuilder: (_, child, progress) {
-              if (progress == null) return child;
-              return const Center(
-                child: CircularProgressIndicator(color: _teal, strokeWidth: 2),
-              );
-            },
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.sentiment_very_satisfied_rounded,
-              size: 80,
-              color: Colors.white,
-            ),
           ),
         ),
       ),

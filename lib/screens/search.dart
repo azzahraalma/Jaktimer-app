@@ -32,7 +32,6 @@ class _SearchScreenState extends State<SearchScreen>
   bool _isSearching = false;
   bool _hasQuery = false;
 
-  // -1 semua, 0 kuliner, 1 ruang
   int _selectedTab = -1;
 
   Timer? _debounce;
@@ -43,8 +42,8 @@ class _SearchScreenState extends State<SearchScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
-  static const _orange      = Color(0xFFF7924A);
-  static const _dark        = Color(0xFF1A1A2E);
+  static const _orange = Color(0xFFF7924A);
+  static const _dark = Color(0xFF1A1A2E);
 
   @override
   void initState() {
@@ -60,49 +59,49 @@ class _SearchScreenState extends State<SearchScreen>
       curve: Curves.easeOut,
     );
 
+    _initLocation(); 
     _loadRekomendasi();
-    _initLocation();
     _animController.forward();
   }
 
-  // ================= LOCATION =================
+  //  LOCATION 
 
   Future<void> _initLocation() async {
-    final granted = await LocationService.isPermissionGranted();
+    try {
+      // Cek apakah location service aktif
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
 
-    if (granted) {
-      await _startTrackingLocation();
-    } else {
-      final permission = await LocationService.requestPermission();
-      if (permission == LocationPermission.always ||
-          permission == LocationPermission.whileInUse) {
-        await _startTrackingLocation();
+      // Cek dan minta permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
       }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) return;
+
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      if (mounted) setState(() => _userPosition = pos);
+
+      _positionStream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 50,
+        ),
+      ).listen((position) {
+        if (mounted) setState(() => _userPosition = position);
+      });
+    } catch (_) {
     }
   }
 
-  Future<void> _startTrackingLocation() async {
-    final pos = await LocationService.getCurrentPosition();
-    if (pos != null) _updateLocation(pos);
-
-    _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 50,
-      ),
-    ).listen((position) => _updateLocation(position));
-  }
-
-  void _updateLocation(Position position) {
-    if (!mounted) return;
-    setState(() => _userPosition = position);
-  }
-
-  // ================= REKOMENDASI =================
+  //  REKOMENDASI 
 
   Future<void> _loadRekomendasi() async {
     final kuliner = await _db.getKuliner();
-    final ruang   = await _db.getRuangTerbuka();
+    final ruang = await _db.getRuangTerbuka();
 
     final List<Map<String, dynamic>> mixed = [
       ...kuliner.map((e) => {...e, '_tipe': 'kuliner'}).take(4),
@@ -113,7 +112,7 @@ class _SearchScreenState extends State<SearchScreen>
     setState(() => _rekomendasi = mixed);
   }
 
-  // ================= SEARCH =================
+  //  SEARCH 
 
   void _onSearchChanged(String query) {
     _debounce?.cancel();
@@ -141,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen>
     setState(() => _isSearching = true);
 
     List<Map<String, dynamic>> kuliner = [];
-    List<Map<String, dynamic>> ruang   = [];
+    List<Map<String, dynamic>> ruang = [];
 
     if (_selectedTab == 0) {
       kuliner = await _db.getKuliner(search: query);
@@ -149,24 +148,29 @@ class _SearchScreenState extends State<SearchScreen>
       ruang = await _db.getRuangTerbuka(search: query);
     } else {
       kuliner = await _db.getKuliner(search: query);
-      ruang   = await _db.getRuangTerbuka(search: query);
+      ruang = await _db.getRuangTerbuka(search: query);
     }
 
     if (!mounted) return;
     setState(() {
       _kulinerResults = kuliner;
-      _ruangResults   = ruang;
-      _isSearching    = false;
+      _ruangResults = ruang;
+      _isSearching = false;
     });
   }
 
-  // ================= DISTANCE =================
+  //  DISTANCE 
 
   double? _getDistance(Map<String, dynamic> item) {
     if (_userPosition == null) return null;
+
     final lat = double.tryParse(item['latitude'].toString());
     final lng = double.tryParse(item['longitude'].toString());
+
     if (lat == null || lng == null) return null;
+    if (lat == 0.0 && lng == 0.0) return null;
+    if (lat.abs() > 90 || lng.abs() > 180) return null;
+
     return LocationService.calculateDistance(
       _userPosition!.latitude,
       _userPosition!.longitude,
@@ -175,7 +179,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ================= FAB: pilih tambah apa =================
+  //  FAB: pilih tambah apa 
 
   void _showTambahPicker() {
     showModalBottomSheet(
@@ -190,7 +194,6 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // handle
             Container(
               width: 40,
               height: 4,
@@ -220,7 +223,6 @@ class _SearchScreenState extends State<SearchScreen>
 
             Row(
               children: [
-                // Kuliner
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.restaurant_rounded,
@@ -228,12 +230,12 @@ class _SearchScreenState extends State<SearchScreen>
                     subtitle: 'Restoran, kafe,\nwarung & lainnya',
                     onTap: () {
                       Navigator.pop(context);
-                      showTambahKulinerSheet(context).then((_) => _loadRekomendasi());
+                      showTambahKulinerSheet(context)
+                          .then((_) => _loadRekomendasi());
                     },
                   ),
                 ),
                 const SizedBox(width: 14),
-                // Ruang Terbuka
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.park_rounded,
@@ -241,7 +243,8 @@ class _SearchScreenState extends State<SearchScreen>
                     subtitle: 'Taman, RPTRA,\nhutan kota & lainnya',
                     onTap: () {
                       Navigator.pop(context);
-                      showTambahRuangSheet(context).then((_) => _loadRekomendasi());
+                      showTambahRuangSheet(context)
+                          .then((_) => _loadRekomendasi());
                     },
                   ),
                 ),
@@ -265,7 +268,7 @@ class _SearchScreenState extends State<SearchScreen>
     super.dispose();
   }
 
-  // ================= UI =================
+  //  UI 
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +291,6 @@ class _SearchScreenState extends State<SearchScreen>
                 ],
               ),
 
-              // ── FAB pojok kanan bawah ────────────────────────────────────
               if (_hasQuery)
                 Positioned(
                   right: 20,
@@ -324,7 +326,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ================= HEADER =================
+  //  HEADER 
 
   Widget _buildHeader() {
     return Padding(
@@ -370,7 +372,8 @@ class _SearchScreenState extends State<SearchScreen>
                           : _selectedTab == 1
                               ? 'Cari Ruang Terbuka...'
                               : 'Cari Kuliner atau Ruang Terbuka',
-                      hintStyle: const TextStyle(color: Color(0xFFBBBBBB)),
+                      hintStyle:
+                          const TextStyle(color: Color(0xFFBBBBBB)),
                     ),
                   ),
                 ),
@@ -383,7 +386,8 @@ class _SearchScreenState extends State<SearchScreen>
                     },
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 14),
-                      child: Icon(Icons.close_rounded, color: Color(0xFFBBBBBB)),
+                      child: Icon(Icons.close_rounded,
+                          color: Color(0xFFBBBBBB)),
                     ),
                   ),
               ],
@@ -394,7 +398,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ================= TAB =================
+  //  TAB 
 
   Widget _buildTabs() {
     return Padding(
@@ -413,9 +417,15 @@ class _SearchScreenState extends State<SearchScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              _tabButton(icon: Icons.restaurant_rounded, label: 'Kuliner', index: 0),
+              _tabButton(
+                  icon: Icons.restaurant_rounded,
+                  label: 'Kuliner',
+                  index: 0),
               const SizedBox(width: 10),
-              _tabButton(icon: Icons.park_rounded, label: 'Ruang Terbuka', index: 1),
+              _tabButton(
+                  icon: Icons.park_rounded,
+                  label: 'Ruang Terbuka',
+                  index: 1),
             ],
           ),
         ],
@@ -448,7 +458,8 @@ class _SearchScreenState extends State<SearchScreen>
         ),
         child: Row(
           children: [
-            Icon(icon, size: 15, color: selected ? Colors.white : _orange),
+            Icon(icon,
+                size: 15, color: selected ? Colors.white : _orange),
             const SizedBox(width: 6),
             Text(
               label,
@@ -464,7 +475,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ================= REKOMENDASI =================
+  //  REKOMENDASI 
 
   Widget _buildRekomendasi() {
     if (_rekomendasi.isEmpty) {
@@ -513,23 +524,28 @@ class _SearchScreenState extends State<SearchScreen>
               childAspectRatio: 0.88,
             ),
             itemBuilder: (_, index) {
-              final item      = items[index];
+              final item = items[index];
               final isKuliner = item['_tipe'] == 'kuliner';
 
               if (isKuliner) {
                 return KulinerCard(
                   kuliner: item,
                   distance: _getDistance(item),
-                  onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => KulinerDetailScreen(kuliner: item))),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              KulinerDetailScreen(kuliner: item))),
                 );
               }
 
               return RuangCard(
                 ruang: item,
                 distance: _getDistance(item),
-                onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => RuangDetailScreen(ruang: item))),
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => RuangDetailScreen(ruang: item))),
               );
             },
           ),
@@ -538,7 +554,7 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  // ================= SEARCH RESULT =================
+  //  SEARCH RESULT 
 
   Widget _buildSearchResults() {
     if (_isSearching) {
@@ -565,7 +581,8 @@ class _SearchScreenState extends State<SearchScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[300]),
+            Icon(Icons.search_off_rounded,
+                size: 64, color: Colors.grey[300]),
             const SizedBox(height: 12),
             Text(
               'Tidak ada hasil',
@@ -584,35 +601,37 @@ class _SearchScreenState extends State<SearchScreen>
         crossAxisCount: 2,
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
-        childAspectRatio: 0.88,  // sama dengan rekomendasi — tidak ada whitespace
+        childAspectRatio: 0.88,
       ),
       itemBuilder: (_, index) {
-        final item      = items[index];
+        final item = items[index];
         final isKuliner = item['_tipe'] == 'kuliner';
 
         if (isKuliner) {
           return KulinerCard(
             kuliner: item,
             distance: _getDistance(item),
-            onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => KulinerDetailScreen(kuliner: item))),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => KulinerDetailScreen(kuliner: item))),
           );
         }
 
         return RuangCard(
           ruang: item,
           distance: _getDistance(item),
-          onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => RuangDetailScreen(ruang: item))),
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => RuangDetailScreen(ruang: item))),
         );
       },
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Picker option tile
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PickerOption extends StatelessWidget {
   final IconData icon;
@@ -627,9 +646,9 @@ class _PickerOption extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _orange      = Color(0xFFF7924A);
+  static const _orange = Color(0xFFF7924A);
   static const _orangeLight = Color(0xFFFFF2E8);
-  static const _dark        = Color(0xFF1A1A2E);
+  static const _dark = Color(0xFF1A1A2E);
 
   @override
   Widget build(BuildContext context) {

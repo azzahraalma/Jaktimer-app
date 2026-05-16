@@ -221,7 +221,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'rating': 4.5,
   'jumlah_ulasan': 1,
   'image_asset':
-      'assets/images/kuliner/Bakso Rusuk Solo.jpg',
+      'assets/images/kuliner/Bakso-Rusuk-Solo.jpg',
   'latitude': -6.2235,
   'longitude': 106.9158,
   'jam_buka': '09:00',
@@ -337,7 +337,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'rating': 4.9,
   'jumlah_ulasan': 1,
   'image_asset':
-      'assets/images/kuliner/Angkringan De Ginastel.jpg',
+      'assets/images/kuliner/Angkringan-De-Ginastel.jpg',
   'latitude': -6.2614,
   'longitude': 106.8681,
   'jam_buka': '17:30',
@@ -500,7 +500,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'rating': 4.6,
   'jumlah_ulasan': 0,
   'image_asset':
-      'assets/images/Rumah Makan Minang Sepakat.jpg',
+      'assets/images/kuliner/Rumah Makan Minang Sepakat.jpg',
   'latitude': -6.2081,
   'longitude': 106.8502,
   'jam_buka': '00:00',
@@ -523,7 +523,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'rating': 4.4,
   'jumlah_ulasan': 1,
   'image_asset':
-      'assets/images/kuliner/akmi Ayam BBT.jpeg',
+      'assets/images/kuliner/Bakmi Ayam BBT.jpeg',
   'latitude': -6.2032,
   'longitude': 106.8644,
   'jam_buka': '06:30',

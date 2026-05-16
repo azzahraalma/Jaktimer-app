@@ -15,10 +15,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen>
-  with WidgetsBindingObserver {
+    with WidgetsBindingObserver {
   final DatabaseHelper _db = DatabaseHelper();
   final ImagePicker _picker = ImagePicker();
-  
 
   Map<String, dynamic>? _user;
   List<Map<String, dynamic>> _badges = [];
@@ -27,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   int _totalArtikel = 0;
   bool _isLoading = true;
 
-  // ── Level & XP thresholds — IDENTIK dengan daily_checkin_screen.dart ────
+  //  Level & XP thresholds 
   static const List<int> _xpThresholds = [0, 1000, 2000, 3000, 5000, 99999];
 
   static int _levelFromXp(int xp) {
@@ -61,6 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     'Nama julukan masa kecilmu?',
   ];
 
+  // LIFECYCLE
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  // LOAD DATA
+
   Future<void> _load() async {
     setState(() => _isLoading = true);
     final user = await _db.getUserById(widget.userId);
@@ -89,7 +92,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     final totalUlasan = await _db.getTotalUlasan(widget.userId);
     final totalArtikel = await _db.getTotalArtikelDibaca(widget.userId);
 
-    // ── Perbaiki level di DB kalau masih salah akibat bug lama ──────────────
     if (user != null) {
       final xp = user['xp'] as int? ?? 0;
       final correctLevel = _levelFromXp(xp);
@@ -123,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     });
   }
 
-  // ── XP helpers — IDENTIK dengan daily_checkin_screen.dart ─────────────────
+  // XP HELPERS
 
   double _calcProgress(int xp, int level) {
     final idx = (level - 1).clamp(0, _xpThresholds.length - 2);
@@ -140,16 +142,40 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   int _xpToNextLevel(int xp, int level) {
     if (level >= 5) return 0;
-    final nextThreshold = _xpNeeded(level);
-    final remaining = nextThreshold - xp;
+    final remaining = _xpNeeded(level) - xp;
     return remaining < 0 ? 0 : remaining;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  Widget _buildAvatarWidget() {
+    final imagePath = _user?['image_path'] as String?;
+
+    // Punya foto custom dari galeri/kamera
+    if (imagePath != null && imagePath.isNotEmpty) {
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildDefaultAvatarImage(),
+      );
+    }
+
+    // Default: selalu timo_9.png
+    return _buildDefaultAvatarImage();
+  }
+
+  /// Widget default → AssetImage timo_9.png
+  Widget _buildDefaultAvatarImage() {
+    return Image.asset(
+      DatabaseHelper.defaultAvatarAsset,
+      fit: BoxFit.cover,
+    );
+  }
+
   // GANTI FOTO PROFIL
-  // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _showPhotoOptions() async {
+    final hasCustomPhoto = _user?['image_path'] != null &&
+        (_user!['image_path'] as String).isNotEmpty;
+
     await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -219,8 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _pickImage(ImageSource.camera);
                 },
               ),
-              if (_user?['image_path'] != null &&
-                  (_user?['image_path'] as String).isNotEmpty) ...[
+              if (hasCustomPhoto) ...[
                 const Divider(height: 1),
                 ListTile(
                   leading: Container(
@@ -233,10 +258,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: const Icon(Icons.delete_outline_rounded,
                         color: Color(0xFFFF4444)),
                   ),
-                  title: const Text('Hapus Foto',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFFFF4444))),
+                  title: const Text(
+                    'Hapus Foto',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, color: Color(0xFFFF4444)),
+                  ),
+                  subtitle: const Text(
+                    'Kembali ke avatar default Timo',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     _removePhoto();
@@ -270,14 +300,12 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<void> _removePhoto() async {
-    await _db.updateUserImagePath(widget.userId, '');
+    await _db.removeUserImagePath(widget.userId);
     await _load();
-    if (mounted) _showSnackBar('Foto profil dihapus.');
+    if (mounted) _showSnackBar('Foto profil dihapus. Kembali ke Timo! 🐱');
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // EDIT USERNAME & EMAIL
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _showEditProfileDialog() {
     final usernameCtrl =
@@ -289,8 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Edit Profil',
           style: TextStyle(
@@ -326,8 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
-            child:
-                const Text('Batal', style: TextStyle(color: Colors.grey)),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -393,9 +419,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // UBAH KATA SANDI
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _showChangePasswordDialog() {
     final oldCtrl = TextEditingController();
@@ -503,10 +527,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String hint,
-      {TextInputType keyboardType = TextInputType.text,
-      bool obscure = false,
-      VoidCallback? onToggle}) {
+  Widget _buildField(
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    bool obscure = false,
+    VoidCallback? onToggle,
+  }) {
     return TextField(
       controller: ctrl,
       keyboardType: keyboardType,
@@ -539,9 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // LUPA KATA SANDI
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _showForgotPasswordDialog() {
     final emailCtrl =
@@ -559,9 +584,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // ALL BADGES SHEET
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _showAllBadgesSheet() {
     showModalBottomSheet(
@@ -606,10 +629,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 const SizedBox(height: 4),
                 Text(
                   '${_badges.length} badge diraih',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF777777),
-                  ),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF777777)),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -625,9 +645,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 'Belum ada badge.\nSelesaikan misi untuk mendapatkannya!',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 14,
-                                ),
+                                    color: Colors.grey[400], fontSize: 14),
                               ),
                             ],
                           ),
@@ -654,33 +672,23 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // LOGOUT
-  // ═══════════════════════════════════════════════════════════════════════════
 
   void _handleLogout() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Keluar Akun',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF1A1A2E),
-          ),
+          style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
         ),
         content: Text(
           'Yakin mau keluar dari akun ${_user?['username'] ?? 'ini'}?',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF555555),
-          ),
+          style: const TextStyle(fontSize: 15, color: Color(0xFF555555)),
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
@@ -688,16 +696,14 @@ class _ProfileScreenState extends State<ProfileScreen>
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text(
               'Batal',
               style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16),
             ),
           ),
           ElevatedButton(
@@ -711,16 +717,14 @@ class _ProfileScreenState extends State<ProfileScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF4444),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text(
               'Keluar',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900),
             ),
           ),
         ],
@@ -728,9 +732,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HELPERS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // SNACKBAR 
 
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -745,9 +747,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
   // BUILD
-  // ═══════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -762,10 +762,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final int xp = _user?['xp'] as int? ?? 0;
     final String username = _user?['username'] as String? ?? 'Timo';
     final String email = _user?['email'] as String? ?? '';
-    final String avatarUrl = _user?['avatar_url'] as String? ?? '';
-    final String imagePath = _user?['image_path'] as String? ?? '';
 
-    // ── Selalu hitung ulang level dari total XP ──────────────────────────────
     final int level = _levelFromXp(xp);
     final String levelName = _levelNameFromLevel(level);
     final int xpNeeded = _xpNeeded(level);
@@ -781,7 +778,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // ── HEADER ──────────────────────────────────────────────────
+              //  HEADER 
               const Padding(
                 padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
                 child: Row(
@@ -801,7 +798,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 24),
 
-              // ── AVATAR ──────────────────────────────────────────────────
+              //  AVATAR 
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -824,8 +821,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(50),
-                        child: _buildAvatarWidget(
-                            imagePath, avatarUrl, username),
+                        child: _buildAvatarWidget(),
                       ),
                     ),
                   ),
@@ -852,7 +848,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 14),
 
-              // ── USERNAME ─────────────────────────────────────────────────
+              //  USERNAME 
               GestureDetector(
                 onTap: _showEditProfileDialog,
                 child: Row(
@@ -875,7 +871,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 6),
 
-              // ── EMAIL ────────────────────────────────────────────────────
+              //  EMAIL 
               GestureDetector(
                 onTap: _showEditProfileDialog,
                 child: Container(
@@ -907,7 +903,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 20),
 
-              // ── LEVEL CARD — identik dengan _buildTimoCard di daily checkin ──
+              //  LEVEL CARD 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
@@ -928,7 +924,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Baris atas: level & nama level (kiri), total XP (kanan)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -951,7 +946,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ],
                       ),
                       const SizedBox(height: 2),
-                      // Teks kecil info XP — identik dengan daily checkin
                       Text(
                         level < 5
                             ? '$xp XP di level ini · kurang $xpKurang XP ke level berikutnya'
@@ -963,7 +957,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ),
                       const SizedBox(height: 10),
-                      // Progress bar — identik dengan daily checkin
                       TweenAnimationBuilder<double>(
                         tween: Tween<double>(begin: 0, end: progress),
                         duration: const Duration(milliseconds: 800),
@@ -992,7 +985,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Label bawah progress bar
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1020,7 +1012,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 24),
 
-              // ── KEAMANAN AKUN ─────────────────────────────────────────────
+              //  KEAMANAN AKUN 
               _buildSectionHeader('Keamanan Akun'),
               const SizedBox(height: 12),
               Padding(
@@ -1072,9 +1064,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                               Text(
                                 'Ubah atau reset kata sandi akunmu',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF999999),
-                                ),
+                                    fontSize: 12, color: Color(0xFF999999)),
                               ),
                             ],
                           ),
@@ -1089,7 +1079,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 24),
 
-              // ── PENCAPAIAN ────────────────────────────────────────────────
+              //  PENCAPAIAN 
               _buildSectionHeader(
                 'Pencapaian',
                 trailing: GestureDetector(
@@ -1114,8 +1104,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFF3EC),
                           borderRadius: BorderRadius.circular(16),
-                          border:
-                              Border.all(color: const Color(0xFFFBD2B6)),
+                          border: Border.all(color: const Color(0xFFFBD2B6)),
                         ),
                         child: Column(
                           children: [
@@ -1136,9 +1125,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           (i) => Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                  right: i < badgePreview.length - 1
-                                      ? 12
-                                      : 0),
+                                  right: i < badgePreview.length - 1 ? 12 : 0),
                               child: _buildBadgeCard(badgePreview[i]),
                             ),
                           ),
@@ -1148,7 +1135,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 24),
 
-              // ── KONTRIBUSI ────────────────────────────────────────────────
+              //  KONTRIBUSI 
               _buildSectionHeader('Kontribusi Kamu'),
               const SizedBox(height: 12),
               Padding(
@@ -1203,7 +1190,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
               const SizedBox(height: 28),
 
-              // ── KELUAR AKUN ───────────────────────────────────────────────
+              //  KELUAR AKUN 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: GestureDetector(
@@ -1245,38 +1232,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // ── Widget helpers ──────────────────────────────────────────────────────────
-
-  Widget _buildAvatarWidget(
-      String imagePath, String avatarUrl, String username) {
-    if (imagePath.isNotEmpty) {
-      return Image.file(File(imagePath),
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(username));
-    }
-    if (avatarUrl.isNotEmpty) {
-      return Image.network(avatarUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildDefaultAvatar(username));
-    }
-    return _buildDefaultAvatar(username);
-  }
-
-  Widget _buildDefaultAvatar(String username) {
-    return Container(
-      color: const Color(0xFFb6e3f4),
-      child: Center(
-        child: Text(
-          username.isNotEmpty ? username[0].toUpperCase() : 'T',
-          style: const TextStyle(
-            fontSize: 36,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
+  // WIDGET HELPERS
 
   Widget _buildSectionHeader(String title, {Widget? trailing}) {
     return Padding(
@@ -1448,9 +1404,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// FORGOT PASSWORD DIALOG
-// ═════════════════════════════════════════════════════════════════════════════
+// FORGOT PASSWORD 
 
 class _ForgotPasswordDialog extends StatefulWidget {
   final DatabaseHelper db;
@@ -1563,8 +1517,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.white,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: [
           if (_step == 2)
@@ -1589,8 +1542,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
           ? const SizedBox(
               height: 80,
               child: Center(
-                  child: CircularProgressIndicator(
-                      color: Color(0xFFF7924A))),
+                  child: CircularProgressIndicator(color: Color(0xFFF7924A))),
             )
           : _step == 1
               ? _buildStep1()
@@ -1704,10 +1656,13 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String hint,
-      {TextInputType keyboardType = TextInputType.text,
-      bool obscure = false,
-      VoidCallback? onToggle}) {
+  Widget _buildField(
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    bool obscure = false,
+    VoidCallback? onToggle,
+  }) {
     return TextField(
       controller: ctrl,
       keyboardType: keyboardType,
@@ -1722,8 +1677,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide:
-              const BorderSide(color: Color(0xFFF7924A), width: 2),
+          borderSide: const BorderSide(color: Color(0xFFF7924A), width: 2),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

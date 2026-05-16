@@ -30,7 +30,6 @@ class ArtikelDetailScreen extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 255, 235, 222),
       body: CustomScrollView(
         slivers: [
-          // ── Hero Image App Bar ────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -76,7 +75,7 @@ class ArtikelDetailScreen extends StatelessWidget {
                     artikel['image_asset'] ?? 'assets/images/artikel/placeholder.png',
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    height: 200, // sesuaikan dengan kebutuhan layout
+                    height: 200, 
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: const Color(0xFF1A3C5E),
                       child: const Center(
@@ -88,7 +87,7 @@ class ArtikelDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Gradient overlay
+
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -101,7 +100,6 @@ class ArtikelDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Info di bawah gambar
                   Positioned(
                     bottom: 20,
                     left: 16,
@@ -134,7 +132,6 @@ class ArtikelDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // ── Konten ───────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Column(
               children: [
@@ -155,7 +152,6 @@ class ArtikelDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Judul
                       Text(
                         artikel['judul'] as String? ?? '',
                         style: const TextStyle(
@@ -167,7 +163,6 @@ class ArtikelDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // Meta info
                       Row(
                         children: [
                           Container(

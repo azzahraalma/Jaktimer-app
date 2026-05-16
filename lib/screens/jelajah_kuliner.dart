@@ -1,4 +1,3 @@
-// lib/screens/jelajah_kuliner.dart
 import 'package:flutter/material.dart';
 import '../helper/database_helper.dart';
 import '../helper/badge_helper.dart';
@@ -51,7 +50,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     }
   }
 
-  // ── Badge helper ──────────────────────────────────────────────────────────
+  // Badge helper 
   Future<void> _checkAndShowBadges() async {
     if (widget.userId == null) return;
     final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!);
@@ -67,7 +66,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     }
   }
 
-  // ── Misi callbacks ────────────────────────────────────────────────────────
+  //  Misi callbacks 
   Future<void> _onReviewSubmitted() async {
     if (widget.misiKode == 'tambah_review_kuliner' &&
         widget.onMisiSelesai != null) {
@@ -230,7 +229,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
             : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // ── HEADER ───────────────────────────────────────────────
+                  //  HEADER 
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -355,7 +354,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                     ),
                   ),
 
-                  // ── FEATURED ─────────────────────────────────────────────
+                  //  FEATURED 
                   if (featured != null)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -482,7 +481,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                       ),
                     ),
 
-                  // ── GRID ─────────────────────────────────────────────────
+                  //  GRID 
                   if (gridItems.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -513,7 +512,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                       ),
                     ),
 
-                  // ── LIST ─────────────────────────────────────────────────
+                  //  LIST 
                   if (listItems.isNotEmpty)
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),

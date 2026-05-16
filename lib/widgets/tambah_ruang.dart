@@ -11,10 +11,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../helper/database_helper.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Reusable bottom-sheet launcher
-// ─────────────────────────────────────────────────────────────────────────────
-
 Future<void> showTambahRuangSheet(
   BuildContext context, {
   bool fromMisi = false,
@@ -30,10 +26,6 @@ Future<void> showTambahRuangSheet(
     ),
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom-sheet wrapper
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _RuangFormSheet extends StatelessWidget {
   final bool fromMisi;
@@ -81,10 +73,6 @@ class _RuangFormSheet extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Standalone screen
-// ─────────────────────────────────────────────────────────────────────────────
-
 class TambahRuangScreen extends StatelessWidget {
   final Function(Map<String, dynamic>)? onSubmit;
   final bool fromMisi;
@@ -113,10 +101,6 @@ class TambahRuangScreen extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Nominatim suggestion model
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _PlaceSuggestion {
   final String displayName;
   final String shortName;
@@ -141,10 +125,6 @@ class _PlaceSuggestion {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Core form
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _RuangFormBody extends StatefulWidget {
   final ScrollController? scrollController;
@@ -180,23 +160,19 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
   File? _selectedImage;
   bool  _isSaving = false;
 
-  // ── Map ────────────────────────────────────────────────────────────────────
   bool   _showMap   = false;
   LatLng _pinLatLng = const LatLng(-6.2615, 106.9005);
   final  MapController _mapController = MapController();
 
-  // ── Nominatim search ───────────────────────────────────────────────────────
   List<_PlaceSuggestion> _suggestions   = [];
   bool  _loadingSuggest = false;
   bool  _showDropdown   = false;
   Timer? _debounce;
 
-  // ── Bounding box Jakarta Timur ─────────────────────────────────────────────
   static bool _isInJakTim(double lat, double lon) =>
       lat >= -6.37 && lat <= -6.19 &&
       lon >= 106.82 && lon <= 106.98;
 
-  // ── Fasilitas ──────────────────────────────────────────────────────────────
   static const _fasilitasOptions = [
     {'label': 'Toilet',        'icon': Icons.wc_rounded},
     {'label': 'Parkir',        'icon': Icons.local_parking_rounded},
@@ -212,7 +188,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
   final Set<String> _selectedFasilitas = {};
 
-  // ── Colors ─────────────────────────────────────────────────────────────────
   static const _orange       = Color(0xFFF7924A);
   static const _orangeLight  = Color(0xFFFFF2E8);
   static const _orangeBorder = Color(0xFFFBD2B6);
@@ -232,7 +207,7 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     super.dispose();
   }
 
-  // ── Dialog: lokasi di luar Jakarta Timur ───────────────────────────────────
+  // deteksi lokasi diluar jakarta
   Future<void> _showOutOfAreaDialog() async {
     return showDialog(
       context: context,
@@ -304,13 +279,11 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Image picker ────────────────────────────────────────────────────────────
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) setState(() => _selectedImage = File(picked.path));
   }
 
-  // ── Snackbar ────────────────────────────────────────────────────────────────
   void _showSnack(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -327,7 +300,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Nominatim search ────────────────────────────────────────────────────────
   Future<void> _onSearchChanged(String value) async {
     _debounce?.cancel();
     if (value.trim().length < 2) {
@@ -362,14 +334,13 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
           });
         }
       } catch (_) {
-        // silent fail — user bisa tetap ketik manual
+        
       } finally {
         if (mounted) setState(() => _loadingSuggest = false);
       }
     });
   }
 
-  // ── Tap suggestion ──────────────────────────────────────────────────────────
   Future<void> _onSuggestionTap(_PlaceSuggestion s) async {
     if (!_isInJakTim(s.lat, s.lon)) {
       await _showOutOfAreaDialog();
@@ -390,7 +361,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     });
   }
 
-  // ── GPS ─────────────────────────────────────────────────────────────────────
   Future<void> _goToMyLocation() async {
     try {
       LocationPermission perm = await Geolocator.checkPermission();
@@ -416,7 +386,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     }
   }
 
-  // ── Reverse geocode ─────────────────────────────────────────────────────────
   Future<void> _reverseGeocode(LatLng latlng) async {
     try {
       final uri = Uri.parse(
@@ -453,11 +422,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     } catch (_) {}
   }
 
-  // ── Save ─────────────────────────────────────────────────────────────────────
-  // Sama dengan tambah_kuliner:
-  // - Jika fromMisi: tutup form dulu, lalu panggil onMisiSelesai
-  //   (XP popup ditangani di DailyCheckinScreen via _completeMisi)
-  // - Jika bukan dari misi: tampilkan snackbar lalu tutup form
   Future<void> _save() async {
     if (_namaController.text.trim().isEmpty) {
       _showSnack('Nama tempat wajib diisi!');
@@ -497,8 +461,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     }
 
     if (widget.fromMisi) {
-      // Tutup form dulu, baru panggil callback misi selesai.
-      // XP popup ditangani di DailyCheckinScreen lewat _completeMisi.
       widget.onClose?.call();
       Navigator.pop(context);
       await Future.delayed(const Duration(milliseconds: 300));
@@ -513,7 +475,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     }
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -526,7 +487,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // ── Header ──────────────────────────────────────────────────────
               Row(
                 children: [
                   const Expanded(
@@ -558,14 +518,12 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 20),
 
-              // ── Foto ────────────────────────────────────────────────────────
               _buildLabel('Unggah Foto'),
               const SizedBox(height: 8),
               _PhotoPicker(image: _selectedImage, onTap: _pickImage),
 
               const SizedBox(height: 18),
 
-              // ── Nama ────────────────────────────────────────────────────────
               _buildLabel('Nama Tempat'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -575,7 +533,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Kategori ────────────────────────────────────────────────────
               _buildLabel('Kategori'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -587,7 +544,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Lokasi ──────────────────────────────────────────────────────
               _buildLabel('Lokasi'),
               const SizedBox(height: 4),
               const Text(
@@ -602,7 +558,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 10),
 
-              // Toggle peta
               GestureDetector(
                 onTap: () => setState(() => _showMap = !_showMap),
                 child: Container(
@@ -645,7 +600,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Tiket Masuk ─────────────────────────────────────────────────
               _buildLabel('Tiket Masuk'),
               const SizedBox(height: 8),
               _buildTextField(
@@ -657,7 +611,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Jam operasional ─────────────────────────────────────────────
               _buildLabel('Jam Operasional'),
               const SizedBox(height: 8),
               Row(
@@ -683,7 +636,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Fasilitas ───────────────────────────────────────────────────
               _buildLabel('Fasilitas'),
               const SizedBox(height: 10),
               _FasilitasPicker(
@@ -700,7 +652,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
               const SizedBox(height: 16),
 
-              // ── Tentang ─────────────────────────────────────────────────────
               _buildLabel('Tentang'),
               const SizedBox(height: 8),
               Container(
@@ -726,7 +677,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
           ),
         ),
 
-        // ── Tombol Simpan ───────────────────────────────────────────────────
         Positioned(
           bottom: 0,
           left: 0,
@@ -779,7 +729,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Location search bar ─────────────────────────────────────────────────────
   Widget _buildLocationSearch() {
     return Container(
       decoration: BoxDecoration(
@@ -839,7 +788,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Suggestions dropdown ────────────────────────────────────────────────────
   Widget _buildSuggestionsDropdown() {
     return Container(
       margin: const EdgeInsets.only(top: 4),
@@ -926,7 +874,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Mini map ────────────────────────────────────────────────────────────────
   Widget _buildMiniMap() {
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -1056,7 +1003,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 
-  // ── Helper widgets ──────────────────────────────────────────────────────────
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -1094,10 +1040,6 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-widgets
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PhotoPicker extends StatelessWidget {
   final File? image;

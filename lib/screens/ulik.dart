@@ -1,4 +1,3 @@
-// lib/screens/ulik.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/artikel.dart';
@@ -167,9 +166,9 @@ class _UlikScreenState extends State<UlikScreen> {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       body: Stack(
         children: [
           CustomScrollView(
@@ -570,7 +569,6 @@ Widget build(BuildContext context) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _ArtikelGridCard extends StatelessWidget {
   final Map<String, dynamic> artikel;
   final VoidCallback onTap;
@@ -623,17 +621,18 @@ class _ArtikelGridCard extends StatelessWidget {
                   const BorderRadius.vertical(top: Radius.circular(15)),
               child: Stack(
                 children: [
-                  Image.network(
-                    artikel['image_url'] as String? ?? '',
+                  Image.asset(
+                    artikel['image_asset'] as String? ?? '',
                     height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       height: 120,
-                      color: Colors.grey.shade200,
+                      color: const Color(0xFFFFF3EC),
                       child: const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Colors.grey,
+                        Icons.article_outlined,
+                        color: Color(0xFFF7924A),
+                        size: 36,
                       ),
                     ),
                   ),

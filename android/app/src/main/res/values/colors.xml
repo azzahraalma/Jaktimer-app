@@ -2,4 +2,5 @@
 <!-- android/app/src/main/res/values/colors.xml -->
 <resources>
     <color name="orange_splash">#FF8C00</color>
+	<color name="ic_launcher_background">#FF8C00</color>
 </resources>

@@ -27,7 +27,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'KULINER',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-19',
-    'image_asssets': 'assets/images/artikel/Kerak Telor.jpg',
+    'image_asset': 'assets/images/artikel/Kerak Telor.jpg',
     'ringkasan': 'Menelusuri sejarah kerak telor yang melegenda di Jakarta.',
     'isi':
         'Kerak telor adalah ikon kuliner Betawi yang telah ada sejak abad ke-19. Makanan unik berbahan dasar beras ketan putih, telur ayam atau bebek, ebi, dan kelapa sangrai ini memiliki cara memasak yang tidak biasa: dibalik di atas api sehingga bagian atasnya pun ikut terpanggang.\n\nDulu, kerak telor hanya dijual saat perayaan Lebaran Betawi atau pesta pernikahan. Kini, ia bisa ditemukan di berbagai festival dan acara budaya di seluruh Jakarta, terutama di Ancol dan Monas.\n\nPara pembuat kerak telor, yang disebut "tukang kerak telor", mewarisi keahlian ini turun-temurun. Mereka memiliki teknik khusus: mulai dari takaran bumbu hingga cara membalik wajan agar kerak telor matang sempurna di kedua sisi.\n\nKerak telor bukan sekadar makanan; ia adalah identitas budaya Betawi. Rasanya yang gurih, sedikit manis, dan beraroma rempah adalah representasi dari keberagaman pengaruh budaya yang membentuk kuliner Betawi: Melayu, Arab, Tionghoa, dan Eropa.\n\nSaat ini, kerak telor bahkan mulai masuk ke restoran-restoran fine dining yang ingin mengangkat kuliner tradisional ke panggung yang lebih luas. Upaya ini penting agar generasi muda mengenal dan mencintai warisan kuliner leluhur mereka.',

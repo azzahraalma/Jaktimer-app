@@ -48,7 +48,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   // XP per hari ke-1..7 dalam streak minggu ini
   static const List<int> _xpPerHari = [10, 15, 20, 25, 30, 35, 50];
 
-  // ── Level & XP thresholds — HARUS IDENTIK dengan profile_screen.dart ────
   static const List<int> _xpThresholds = [0, 1000, 2000, 3000, 5000, 99999];
 
   static int _levelFromXp(int xp) {
@@ -82,11 +81,15 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   String get _keyKuisResult => 'quiz_result_${widget.userId}_$_todayKey';
   String get _keyArtikelXp => 'artikel_xp_${widget.userId}_$_todayKey';
 
+  // LIFECYCLE
+
   @override
   void initState() {
     super.initState();
     _load();
   }
+
+  // LOAD DATA
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
@@ -130,7 +133,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     await _db.completeMisi(widget.userId, kode);
   }
 
-  // ── Badge popup queue management ─────────────────────────────────────────
+  // BADGE POPUP QUEUE
+
   void _enqueueBadges(List<Map<String, String>> badges) {
     _pendingBadges.addAll(badges);
     if (!_showingBadge) _showNextBadge();
@@ -167,6 +171,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     );
     overlay.insert(entry);
   }
+
+  // ACTIONS
 
   Future<void> _handleCheckin() async {
     final success = await _db.dailyCheckin(widget.userId);
@@ -232,6 +238,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     }
   }
 
+  // XP HELPERS
+
   int get _xpHariIni {
     int total = 0;
     _misiStatus.forEach((kode, done) {
@@ -263,8 +271,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
 
   int _xpToNextLevel(int xp, int level) {
     if (level >= 5) return 0;
-    final nextThreshold = _xpNeeded(level);
-    final remaining = nextThreshold - xp;
+    final remaining = _xpNeeded(level) - xp;
     return remaining < 0 ? 0 : remaining;
   }
 
@@ -303,6 +310,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     return _xpPerHari[hariKe - 1];
   }
 
+  // BUILD
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -313,14 +322,13 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       );
     }
 
-    final xpRaw = _user?['xp'] as int? ?? 0;
-    final int xp = xpRaw;
+    final int xp = _user?['xp'] as int? ?? 0;
     final int level = _levelFromXp(xp);
     final String levelName = _levelNameFromLevel(level);
-    final username = _user?['username'] as String? ?? 'User';
-    final xpNeeded = _xpNeeded(level);
-    final progress = _calcProgress(xp, level);
-    final xpKurang = _xpToNextLevel(xp, level);
+    final String username = _user?['username'] as String? ?? 'User';
+    final int xpNeeded = _xpNeeded(level);
+    final double progress = _calcProgress(xp, level);
+    final int xpKurang = _xpToNextLevel(xp, level);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
@@ -329,6 +337,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           SafeArea(
             child: Column(
               children: [
+                // HEADER 
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: Row(
@@ -361,7 +370,14 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                       children: [
                         const SizedBox(height: 20),
                         _buildTimoCard(
-                            username, level, levelName, xp, xpNeeded, progress, xpKurang),
+                          username: username,
+                          level: level,
+                          levelName: levelName,
+                          xp: xp,
+                          xpNeeded: xpNeeded,
+                          progress: progress,
+                          xpKurang: xpKurang,
+                        ),
                         const SizedBox(height: 20),
                         _buildWeeklyCard(),
                         const SizedBox(height: 20),
@@ -374,6 +390,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
               ],
             ),
           ),
+
+          //  XP POPUP 
           if (_showXpPopup)
             Positioned(
               bottom: 100,
@@ -392,49 +410,83 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     );
   }
 
-  Widget _buildTimoCard(String username, int level, String levelName, int xp,
-      int xpNeeded, double progress, int xpKurang) {
+  // mascot 
+
+  Widget _buildTimoCard({
+    required String username,
+    required int level,
+    required String levelName,
+    required int xp,
+    required int xpNeeded,
+    required double progress,
+    required int xpKurang,
+  }) {
+    final mascotAsset = DatabaseHelper.getMascotAsset(level);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
           Container(
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 200,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFF7924A).withOpacity(0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                )
-              ],
+              borderRadius: BorderRadius.circular(20),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                'https://api.dicebear.com/7.x/bottts/png?seed=Timo&backgroundColor=b6e3f4',
-                fit: BoxFit.cover,
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                mascotAsset,
+                fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFb6e3f4),
-                  child: const Icon(Icons.person, size: 50, color: Colors.white),
+                  color: const Color(0xFFF7924A),
+                  child: const Icon(
+                    Icons.catching_pokemon_rounded,
+                    size: 52,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Si Timo',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
-              color: Color(0xFFF7924A),
-            ),
+
+          const SizedBox(height: 10),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Si Timo',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  color: Color(0xFFF7924A),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3EC),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFFBD2B6)),
+                ),
+                child: Text(
+                  'Lv.$level',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFF7924A),
+                  ),
+                ),
+              ),
+            ],
           ),
+
           const SizedBox(height: 16),
 
-          // ── XP CARD — layout identik dengan profile_screen.dart ──
+          // XP Card 
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -447,33 +499,46 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
-                )
+                ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Baris atas: "Level X" (kiri, hitam) | "Nama Level" (kanan, orange)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Level $level',
+                      'Level $level · $levelName',
                       style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
                         color: Color(0xFF1A1A2E),
                       ),
                     ),
                     Text(
-                      levelName,
+                      '$xp XP',
                       style: const TextStyle(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: Color(0xFFF7924A),
                       ),
                     ),
                   ],
+                ),
+
+                const SizedBox(height: 2),
+
+                // Sub-teks XP
+                Text(
+                  level < 5
+                      ? '$xp XP di level ini · kurang $xpKurang XP ke level berikutnya'
+                      : '$xp XP · Level Maksimum 🎉',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF9E9E9E),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
@@ -483,46 +548,51 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                   tween: Tween<double>(begin: 0, end: progress),
                   duration: const Duration(milliseconds: 700),
                   curve: Curves.easeOut,
-                  builder: (context, value, _) {
-                    return Stack(
-                      children: [
-                        Container(
+                  builder: (context, value, _) => Stack(
+                    children: [
+                      Container(
+                        height: 12,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: value,
+                        child: Container(
                           height: 12,
-                          width: double.infinity,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEEEEEE),
+                            color: const Color(0xFFF7924A),
                             borderRadius: BorderRadius.circular(99),
                           ),
                         ),
-                        FractionallySizedBox(
-                          widthFactor: value,
-                          child: Container(
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF7924A),
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 8),
 
-                // Teks tengah bawah bar
-                Center(
-                  child: Text(
-                    level < 5
-                        ? '$xp / $xpNeeded XP ke Level ${level + 1}'
-                        : '$xp XP · Level Maksimum 🎉',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF555555),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '$xp / $xpNeeded XP',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFF7924A),
+                      ),
                     ),
-                  ),
+                    Text(
+                      level < 5
+                          ? 'Menuju ${_levelNameFromLevel(level + 1)}'
+                          : 'Level Maksimum! 🎉',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF999999)),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -531,6 +601,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       ),
     );
   }
+
 
   Widget _buildWeeklyCard() {
     return Padding(
@@ -546,7 +617,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
               color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Column(
@@ -566,7 +637,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 Row(
                   children: [
                     Text(
-                      'Hari ini: +${_xpHariIni} XP',
+                      'Hari ini: +$_xpHariIni XP',
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
@@ -933,7 +1004,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             GestureDetector(
               onTap: onTap,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7924A),
                   borderRadius: BorderRadius.circular(20),

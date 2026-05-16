@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _switchToUlik() {
   setState(() {
-    _selectedNav = 2; // index tab Ulik (lihat bottom nav kamu: 0=Home, 1=Search, 2=Ulik, 3=Profil)
+    _selectedNav = 2; 
   });
 }
 
@@ -187,7 +187,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // IndexedStack biar state masing-masing halaman tidak reset saat ganti tab
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFF7924A)),
@@ -197,7 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 IndexedStack(
                   index: _selectedNav,
                   children: [
-                    // Tab 0 – Home (di-render manual supaya bisa pakai state lokasi)
                     Stack(
                       children: [
                         _buildHomePage(),
@@ -232,10 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _buildFloatingNav(),
     );
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // HOME PAGE CONTENT
-  // ──────────────────────────────────────────────────────────────────────────
 
   Widget _buildHomePage() {
     final firstName = _user?['username']?.toString().split(' ').first ?? 'User';
@@ -328,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            // ── KULINER ─────────────────────────────────────────
+            //  KULINER 
             _buildSectionHeader(
               title: 'Rekomendasi Kuliner di Sekitar mu',
               onSeeAll: () {},
@@ -392,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 24),
 
-            // ── RUANG TERBUKA ────────────────────────────────────
+            // RUANG TERBUKA
             _buildSectionHeader(
               title: 'Rekomendasi Ruang Terbuka di Sekitar mu',
               onSeeAll: () {},
@@ -485,10 +479,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // FLOATING NAV (sekarang connected!)
-  // ──────────────────────────────────────────────────────────────────────────
-
   Widget _buildFloatingNav() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
@@ -534,8 +524,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // ──────────────────────────────────────────────────────────────────────────
 
   void _onKulinerTap(Map<String, dynamic> k) {
     Navigator.push(
