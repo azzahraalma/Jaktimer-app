@@ -16,8 +16,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.5,
     'jumlah_ulasan': 78,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/PTRA Caktim Tersenyum.jpg',
     'latitude': -6.1815,
     'longitude': 106.9490,
     'tiket': 'Gratis',
@@ -40,8 +40,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.6,
     'jumlah_ulasan': 120,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Menteng Asri.jpg',
     'latitude': -6.1784,
     'longitude': 106.9544,
     'tiket': 'Gratis',
@@ -64,8 +64,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '20:00',
     'rating': 4.4,
     'jumlah_ulasan': 65,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Kota Cakung.jpg',
     'latitude': -6.1901,
     'longitude': 106.9412,
     'tiket': 'Gratis',
@@ -89,8 +89,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.5,
     'jumlah_ulasan': 52,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Dursa Bersatu.jpg',
     'latitude': -6.2331,
     'longitude': 106.9182,
     'tiket': 'Gratis',
@@ -113,8 +113,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.4,
     'jumlah_ulasan': 44,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Pondok Bambu Berseri.jpg',
     'latitude': -6.2412,
     'longitude': 106.9142,
     'tiket': 'Gratis',
@@ -137,8 +137,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.5,
     'jumlah_ulasan': 60,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Pondok Kelapa Berseri.jpg',
     'latitude': -6.2499,
     'longitude': 106.9251,
     'tiket': 'Gratis',
@@ -162,8 +162,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.5,
     'jumlah_ulasan': 73,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Dahlia.jpg',
     'latitude': -6.2860,
     'longitude': 106.8701,
     'tiket': 'Gratis',
@@ -186,8 +186,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.4,
     'jumlah_ulasan': 48,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Mustika.jpg',
     'latitude': -6.2735,
     'longitude': 106.8663,
     'tiket': 'Gratis',
@@ -210,8 +210,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '20:00',
     'rating': 4.3,
     'jumlah_ulasan': 35,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Kampung Tengah.jpg',
     'latitude': -6.2792,
     'longitude': 106.8720,
     'tiket': 'Gratis',
@@ -236,8 +236,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.4,
     'jumlah_ulasan': 373,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Kampung Pulo Asri.jpg',
     'latitude': -6.2920,
     'longitude': 106.8840,
     'tiket': 'Gratis',
@@ -246,7 +246,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
   },
 
   {
-    'nama': 'Intirub Triangle Park',
+    'nama': 'Taman Segitiga Intirub',
     'deskripsi':
         'Taman kota rindang dengan area santai dan jogging ringan yang populer di Makasar.',
     'alamat':
@@ -260,8 +260,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '23:59',
     'rating': 4.4,
     'jumlah_ulasan': 2122,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Segitiga Intirub.jpg',
     'latitude': -6.2487,
     'longitude': 106.8844,
     'tiket': 'Gratis',
@@ -284,8 +284,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '20:00',
     'rating': 4.2,
     'jumlah_ulasan': 71,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/Jaya Kusuma Park.jpg',
     'latitude': -6.2588,
     'longitude': 106.8732,
     'tiket': 'Gratis',
@@ -310,8 +310,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:30',
     'rating': 4.4,
     'jumlah_ulasan': 485,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Utakara Beriman.jpg',
     'latitude': -6.2058,
     'longitude': 106.8699,
     'tiket': 'Gratis',
@@ -334,8 +334,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:00',
     'rating': 4.4,
     'jumlah_ulasan': 388,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Utakase Berseri.jpg',
     'latitude': -6.2083,
     'longitude': 106.8715,
     'tiket': 'Gratis',
@@ -358,8 +358,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '20:00',
     'rating': 4.3,
     'jumlah_ulasan': 274,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Bronbeek,jpg',
     'latitude': -6.2110,
     'longitude': 106.8687,
     'tiket': 'Gratis',
@@ -383,8 +383,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:00',
     'rating': 4.7,
     'jumlah_ulasan': 105,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Garuda.jpg',
     'latitude': -6.3349,
     'longitude': 106.9012,
     'tiket': 'Gratis',
@@ -407,8 +407,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.6,
     'jumlah_ulasan': 388,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Mutiara Rawa Binong.jpg',
     'latitude': -6.3198,
     'longitude': 106.9133,
     'tiket': 'Gratis',
@@ -431,8 +431,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.7,
     'jumlah_ulasan': 1040,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Ranggon Wijaya Kusuma.jpg',
     'latitude': -6.3405,
     'longitude': 106.9034,
     'tiket': 'Gratis',
@@ -457,8 +457,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:00',
     'rating': 4.6,
     'jumlah_ulasan': 180,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Citra Permata.jpg',
     'latitude': -6.2145,
     'longitude': 106.8784,
     'tiket': 'Gratis',
@@ -481,8 +481,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '21:00',
     'rating': 4.4,
     'jumlah_ulasan': 95,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Cornel Simanjuntak.jpg',
     'latitude': -6.2251,
     'longitude': 106.8704,
     'tiket': 'Gratis',
@@ -505,8 +505,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '22:00',
     'rating': 4.4,
     'jumlah_ulasan': 303,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Jatinegara.jpg',
     'latitude': -6.1982,
     'longitude': 106.9235,
     'tiket': 'Gratis',
@@ -531,8 +531,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '23:59',
     'rating': 4.4,
     'jumlah_ulasan': 249,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Ciracas Prima.jpg',
     'latitude': -6.3422,
     'longitude': 106.8861,
     'tiket': 'Gratis',
@@ -555,8 +555,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '22:00',
     'rating': 4.7,
     'jumlah_ulasan': 127,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Ciracas Ceria.jpg',
     'latitude': -6.3398,
     'longitude': 106.8844,
     'tiket': 'Gratis',
@@ -579,8 +579,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '23:00',
     'rating': 4.2,
     'jumlah_ulasan': 289,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Palm Ciracas.jpg',
     'latitude': -6.3409,
     'longitude': 106.8877,
     'tiket': 'Gratis',
@@ -605,8 +605,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:00',
     'rating': 4.6,
     'jumlah_ulasan': 266,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Gedong Trikora.jpg',
     'latitude': -6.3084,
     'longitude': 106.8619,
     'tiket': 'Gratis',
@@ -629,8 +629,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.6,
     'jumlah_ulasan': 584,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Kopi Gandaria.jpg',
     'latitude': -6.3061,
     'longitude': 106.8668,
     'tiket': 'Gratis',
@@ -639,7 +639,7 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
   },
 
   {
-    'nama': 'Cijantung Park',
+    'nama': 'Taman Cijantung',
     'deskripsi':
         'Taman kota luas dengan jalur jogging dan area santai keluarga.',
     'alamat':
@@ -653,8 +653,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '23:59',
     'rating': 4.6,
     'jumlah_ulasan': 1638,
-    'image_url':
-        'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Cijantung.jpg',
     'latitude': -6.3022,
     'longitude': 106.8610,
     'tiket': 'Gratis',
@@ -679,8 +679,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '18:00',
     'rating': 4.8,
     'jumlah_ulasan': 164,
-    'image_url':
-        'https://images.unsplash.com/photo-1523413651479-597eb2da0ad1?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Kayu Mas.jpg',
     'latitude': -6.1881,
     'longitude': 106.8972,
     'tiket': 'Gratis',
@@ -703,8 +703,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '17:00',
     'rating': 4.6,
     'jumlah_ulasan': 77,
-    'image_url':
-        'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400',
+    'image_asset':
+        'assets/images/ruang/RPTRA Jaka Teratai.jpg',
     'latitude': -6.1940,
     'longitude': 106.9102,
     'tiket': 'Gratis',
@@ -727,8 +727,8 @@ const List<Map<String, dynamic>> dummyRuangTerbukaData = [
     'jam_tutup': '23:59',
     'rating': 4.3,
     'jumlah_ulasan': 195,
-    'image_url':
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400',
+    'image_asset':
+        'assets/images/ruang/Taman Pulo Asem Utara.jpg',
     'latitude': -6.1867,
     'longitude': 106.8924,
     'tiket': 'Gratis',

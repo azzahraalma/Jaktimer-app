@@ -37,14 +37,13 @@ class RuangCard extends StatelessWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                ruang['image_url'] ?? '',
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Image.asset(
+                ruang['image_asset'] ?? 'lib/assets/images/ruang/placeholder.png',
                 height: 110,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   height: 110,
                   color: const Color(0xFFFFF3EC),
                   child: const Icon(
@@ -55,7 +54,6 @@ class RuangCard extends StatelessWidget {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(

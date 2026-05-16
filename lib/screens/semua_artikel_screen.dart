@@ -56,11 +56,9 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
             pinned: true,
             backgroundColor: Colors.white,
             elevation: 0,
-
             surfaceTintColor: Colors.white,
             scrolledUnderElevation: 0,
             shadowColor: Colors.transparent,
-
             leading: GestureDetector(
               onTap: () => Navigator.pop(context),
               child: const Icon(
@@ -91,8 +89,7 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                       final k = _kategoriList[i];
                       final isSelected = _selectedKategori == k;
                       return GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedKategori = k),
+                        onTap: () => setState(() => _selectedKategori = k),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
                           padding: const EdgeInsets.symmetric(
@@ -103,9 +100,7 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: isSelected
-                                  ? const Color(0xffF7924A)
-                                  : const Color(0xFFF7924A),
+                              color: const Color(0xFFF7924A),
                               width: 1.5,
                             ),
                           ),
@@ -157,8 +152,7 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            ArtikelDetailScreen(artikel: artikel),
+                        builder: (_) => ArtikelDetailScreen(artikel: artikel),
                       ),
                     ),
                     child: Container(
@@ -167,27 +161,30 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                        color: const Color(0xFFF7924A),
-                        width: 1.5,
+                          color: const Color(0xFFF7924A),
+                          width: 1.5,
                         ),
                       ),
                       child: Row(
                         children: [
                           // Thumbnail
                           ClipRRect(
-                            borderRadius: const BorderRadius.horizontal(
-                                left: Radius.circular(14)),
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
                             child: SizedBox(
                               width: 150,
                               height: 150,
-                              child: Image.network(
-                                artikel['image_url'] as String? ?? '',
+                              child: Image.asset(
+                                artikel['image_asset'] ?? 'assets/images/artikel/placeholder.png',
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(
-                                      Icons.image_not_supported_outlined,
-                                      color: Colors.grey),
+                                errorBuilder: (context, error, stackTrace) => Container(
+                                  color: const Color(0xFF1A3C5E),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.article_rounded,
+                                      color: Color(0xFFF7924A),
+                                      size: 36,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -221,12 +218,11 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                                       ),
                                       const Spacer(),
                                       Text(
-                                        artikel['created_at'] as String? ??
-                                            '',
+                                        artikel['created_at'] as String? ?? '',
                                         style: const TextStyle(
-                                            fontSize: 10,
-                                            color: const Color.fromARGB(255, 78, 78, 78),
-                                            ),
+                                          fontSize: 10,
+                                          color: Color.fromARGB(255, 78, 78, 78),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -247,15 +243,14 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                                     artikel['ringkasan'] as String? ?? '',
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 11,
-                                      color: const Color.fromARGB(255, 78, 78, 78),
+                                      color: Color.fromARGB(255, 78, 78, 78),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-
-                                  Row(
-                                    children: const [
+                                  const Row(
+                                    children: [
                                       Text(
                                         'Baca selengkapnya',
                                         style: TextStyle(

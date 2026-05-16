@@ -1,7 +1,3 @@
-// lib/data/artikel_data.dart
-// Data 16 artikel budaya & tradisi Jakarta Timur — dibaca dari JSON lokal
-// Import file ini di manapun kamu butuh daftar artikel lengkap.
-
 const List<Map<String, dynamic>> artikelData = [
   {
     'id': 1,
@@ -9,7 +5,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'TRADISI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-20',
-    'image_url': 'https://images.unsplash.com/photo-1533928298208-27ff66555d8d?w=800',
+    'image_asset': 'assets/images/artikel/Gotong Royong.jpeg',
     'ringkasan': 'Kebiasaan bahu membahu warga timur Jakarta dalam kehidupan sehari-hari.',
     'isi':
         'Gotong royong adalah tradisi luhur yang mengakar kuat di masyarakat Jakarta Timur. Dalam setiap hajatan, perbaikan jalan kampung, hingga kerja bakti membersihkan lingkungan, semangat gotong royong selalu hadir sebagai perekat sosial yang tak ternilai.\n\nDi kampung-kampung tua seperti Kampung Melayu, Jatinegara, dan Matraman, tradisi ini masih terjaga dengan baik. Para warga secara sukarela bergotong royong tanpa pamrih, mewujudkan nilai-nilai kebersamaan yang menjadi identitas asli Betawi.\n\nGotong royong bukan sekadar bekerja bersama. Ia adalah manifestasi dari rasa memiliki terhadap lingkungan dan komunitas. Ketika satu warga kesulitan, yang lain datang membantu tanpa perlu diminta. Inilah yang membuat komunitas di Jakarta Timur begitu kuat dan solid.\n\nDi era modern ini, gotong royong bertransformasi dalam berbagai bentuk: arisan RT, siskamling, posyandu, hingga komunitas berkebun urban. Namun esensinya tetap sama: bersama-sama membangun lingkungan yang lebih baik untuk generasi mendatang.\n\nPara peneliti sosial menyebut gotong royong sebagai modal sosial terbesar bangsa Indonesia. Nilai ini yang membedakan cara hidup kita dengan masyarakat individualistis di negara-negara Barat. Dengan menjaga gotong royong, kita menjaga identitas kita sebagai bangsa.',
@@ -31,7 +27,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'KULINER',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-19',
-    'image_url': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800',
+    'image_asssets': 'assets/images/artikel/Kerak Telor.jpg',
     'ringkasan': 'Menelusuri sejarah kerak telor yang melegenda di Jakarta.',
     'isi':
         'Kerak telor adalah ikon kuliner Betawi yang telah ada sejak abad ke-19. Makanan unik berbahan dasar beras ketan putih, telur ayam atau bebek, ebi, dan kelapa sangrai ini memiliki cara memasak yang tidak biasa: dibalik di atas api sehingga bagian atasnya pun ikut terpanggang.\n\nDulu, kerak telor hanya dijual saat perayaan Lebaran Betawi atau pesta pernikahan. Kini, ia bisa ditemukan di berbagai festival dan acara budaya di seluruh Jakarta, terutama di Ancol dan Monas.\n\nPara pembuat kerak telor, yang disebut "tukang kerak telor", mewarisi keahlian ini turun-temurun. Mereka memiliki teknik khusus: mulai dari takaran bumbu hingga cara membalik wajan agar kerak telor matang sempurna di kedua sisi.\n\nKerak telor bukan sekadar makanan; ia adalah identitas budaya Betawi. Rasanya yang gurih, sedikit manis, dan beraroma rempah adalah representasi dari keberagaman pengaruh budaya yang membentuk kuliner Betawi: Melayu, Arab, Tionghoa, dan Eropa.\n\nSaat ini, kerak telor bahkan mulai masuk ke restoran-restoran fine dining yang ingin mengangkat kuliner tradisional ke panggung yang lebih luas. Upaya ini penting agar generasi muda mengenal dan mencintai warisan kuliner leluhur mereka.',
@@ -53,7 +49,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SENI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-18',
-    'image_url': 'https://images.unsplash.com/photo-1533928298208-27ff66555d8d?w=800',
+    'image_asset': 'assets/images/artikel/Ondel-Ondel.jpg',
     'ringkasan': 'Bagaimana ikon Jakarta ini tetap eksis di tengah arus modernisasi.',
     'isi':
         'Ondel-ondel adalah boneka raksasa khas Betawi yang menjadi simbol budaya Jakarta. Dengan tinggi mencapai 2,5 meter dan wajah yang berwarna merah untuk yang laki-laki dan putih untuk yang perempuan, ondel-ondel dulunya dipercaya sebagai penolak bala dan penjaga kampung.\n\nNamun pergeseran fungsi terjadi. Di era modern, ondel-ondel beralih fungsi menjadi tontonan hiburan dan ikon pariwisata. Fenomena "ngamen ondel-ondel" di Jakarta sempat menjadi kontroversi karena dianggap mendegradasikan nilai budaya.\n\nBerbagai upaya pelestarian pun dilakukan. Sanggar-sanggar budaya Betawi giat mengajarkan tari ondel-ondel kepada generasi muda. Pemerintah Provinsi DKI Jakarta juga mengeluarkan regulasi agar ondel-ondel tidak digunakan untuk mengamen.\n\nOndel-ondel yang bertahan di tengah modernisasi adalah simbol ketangguhan budaya Betawi. Selama ada yang mau belajar dan melestarikannya, ondel-ondel akan terus berdiri tegak menjaga identitas Jakarta.\n\nSetiap detail pada ondel-ondel memiliki makna: dari warna busana hingga hiasan kepala yang disebut "mahkota". Memahami simbol-simbol ini adalah cara kita menghormati kearifan lokal yang diwariskan leluhur.',
@@ -70,7 +66,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SEJARAH',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-17',
-    'image_url': 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800',
+    'image_asset': 'assets/images/artikel/Rumah Kebaya.png',
     'ringkasan': 'Keunikan arsitektur rumah adat yang masih terjaga di Jakarta.',
     'isi':
         'Rumah Kebaya adalah salah satu tipe rumah adat Betawi yang paling dikenal. Dinamai demikian karena bentuk atapnya yang menyerupai lipatan kebaya. Rumah ini memiliki teras luas yang disebut "serambi", sebagai ruang interaksi antara penghuni rumah dan tamu.\n\nCiri khas Rumah Kebaya adalah penggunaan kayu sebagai material utama, ornamen ukiran geometris atau flora pada dinding dan pintu, serta warna-warna cerah yang mencerminkan keceriaan karakter Betawi. Langit-langit yang tinggi memungkinkan sirkulasi udara yang baik, ideal untuk iklim tropis Jakarta.\n\nDi Jakarta Timur, beberapa rumah Kebaya masih dapat ditemukan di kawasan Condet, yang dulunya dikenal sebagai pusat kebudayaan Betawi. Kawasan ini bahkan pernah ditetapkan sebagai Cagar Budaya Betawi.\n\nNamun semangat pelestarian terus berkobar. Kini, elemen arsitektur Rumah Kebaya mulai diadopsi dalam desain bangunan publik dan komersial modern, sebagai bentuk penghormatan terhadap warisan budaya leluhur.\n\nMempelajari arsitektur tradisional bukan hanya soal estetika. Ia mengajarkan kita tentang kearifan lokal dalam merespons iklim, sosial, dan budaya—sebuah pengetahuan yang relevan bahkan di era arsitektur hijau masa kini.',
@@ -92,7 +88,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'KULINER',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-16',
-    'image_url': 'https://images.unsplash.com/photo-1547592180-85f173990554?w=800',
+    'image_asset': 'assets/images/artikel/Soto Betawi.jpg',
     'ringkasan': 'Rahasia di balik kelezatan soto khas Betawi yang tak lekang waktu.',
     'isi':
         'Soto Betawi adalah salah satu kuliner paling ikonik dari Jakarta. Berbeda dengan soto dari daerah lain, Soto Betawi menggunakan kuah santan atau susu yang kaya dan gurih, dengan isian daging sapi, jeroan, tomat, dan kentang yang menjadikannya hidangan yang mengenyangkan.\n\nAsal usul Soto Betawi tidak lepas dari percampuran budaya yang terjadi di Batavia—nama Jakarta di masa kolonial. Pengaruh kuliner Arab, India, dan Eropa melebur dengan cita rasa lokal Betawi, menghasilkan sajian yang unik dan tak tertandingi.\n\nRahasia Soto Betawi terletak pada rempah-rempah yang digunakan: serai, lengkuas, jahe, kunyit, dan ketumbar yang digongseng terlebih dahulu sebelum dihaluskan. Proses ini menghasilkan aroma yang harum dan rasa yang dalam.\n\nDi Jakarta Timur, warung Soto Betawi bisa ditemukan di hampir setiap sudut kecamatan. Yang paling terkenal biasanya buka sejak subuh dan tutup sebelum siang—tanda bahwa makanan ini memang paling nikmat dinikmati sebagai sarapan.\n\nMakan Soto Betawi adalah pengalaman budaya tersendiri. Ritual menambahkan perasan jeruk limau, kerupuk emping, dan sambal ke dalam mangkuk adalah cara kita menyesuaikan cita rasa sesuai selera—sebuah filosofi yang mencerminkan keberagaman Betawi.',
@@ -114,7 +110,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SENI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-15',
-    'image_url': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800',
+    'image_asset': 'assets/images/artikel/Lenong.jpg',
     'ringkasan': 'Seni pertunjukan rakyat Betawi yang kaya humor dan pesan moral.',
     'isi':
         'Lenong adalah seni pertunjukan teater rakyat khas Betawi yang telah ada sejak akhir abad ke-19. Pertunjukan ini menggabungkan drama, musik gambang kromong, tari, dan humor khas Betawi yang menggelitik namun penuh pesan moral.\n\nAda dua jenis Lenong: Lenong Denes yang mengangkat cerita kerajaan dan kehidupan bangsawan, serta Lenong Preman yang bercerita tentang kehidupan rakyat biasa. Keduanya memiliki karakter khas: tokoh jagoan, tokoh lucu, dan tokoh antagonis yang selalu berakhir kalah.\n\nMusik pengiring Lenong adalah gambang kromong—perpaduan alat musik Tionghoa dan Betawi yang menghasilkan harmoni unik. Suara rebab, gambang, gong, dan kecrek berpadu menciptakan atmosfer pertunjukan yang khas dan meriah.\n\nDi masa kini, Lenong terus beradaptasi. Beberapa sanggar memodernisasi cerita dengan mengangkat isu-isu kontemporer seperti lingkungan, teknologi, dan toleransi, sambil mempertahankan gaya khas Betawi yang jenaka dan menghibur.\n\nMenonton Lenong bukan hanya hiburan semata. Ia adalah cara bagi kita untuk memahami nilai-nilai yang dijunjung tinggi masyarakat Betawi: kejujuran, keberanian melawan ketidakadilan, dan semangat pantang menyerah.',
@@ -131,7 +127,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SENI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-14',
-    'image_url': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+    'image_asset': 'assets/images/artikel/Batik.jpg',
     'ringkasan': 'Mengenal kekayaan motif batik Betawi dan makna filosofinya.',
     'isi':
         'Batik Betawi memiliki karakteristik yang unik dan berbeda dari batik Jawa pada umumnya. Motif-motifnya terinspirasi dari alam Jakarta—mulai dari bunga Rasamala, burung Hong, ondel-ondel, hingga Monas—yang menjadikannya representasi visual budaya Betawi yang kaya.\n\nWarna-warna Batik Betawi cenderung lebih cerah dan berani dibandingkan batik dari daerah lain. Ini mencerminkan karakter masyarakat Betawi yang terbuka, ekspresif, dan penuh semangat. Merah, kuning, dan hijau mendominasi palet warna yang digunakan.\n\nSalah satu motif paling terkenal adalah "Pucuk Rebung", yang melambangkan harapan dan pertumbuhan. Ada pula motif "Nusa Kelapa" yang terinspirasi dari nama kuno Jakarta, dan motif "Rasamala" yang mengambil nama pohon khas Betawi.\n\nPara pengrajin Batik Betawi banyak ditemukan di Condet dan Setu Babakan—kawasan yang memang ditetapkan sebagai pusat pelestarian budaya Betawi. Di sana, pengunjung bisa belajar membatik langsung dari pengrajin yang berpengalaman.\n\nDengan memakai Batik Betawi, kita bukan hanya mengenakan pakaian. Kita turut berpartisipasi dalam pelestarian warisan budaya yang harus terus hidup di tengah derasnya arus globalisasi.',
@@ -153,7 +149,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SEJARAH',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-13',
-    'image_url': 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800',
+    'image_asset': 'assets/images/artikel/Condet.jpg',
     'ringkasan': 'Menelusuri kawasan Condet sebagai benteng terakhir budaya Betawi.',
     'isi':
         'Condet adalah salah satu kawasan di Jakarta Timur yang paling erat kaitannya dengan sejarah dan budaya Betawi. Dulunya dikenal sebagai "kampung buah", Condet terkenal dengan kebun salak dan duku yang lebat—komoditas penting di era pra-modernisasi Jakarta.\n\nPada tahun 1975, Condet ditetapkan sebagai Cagar Budaya Betawi oleh Gubernur Ali Sadikin. Ini adalah upaya awal untuk melindungi kawasan yang masih mempertahankan karakter asli Betawi dari gempuran pembangunan kota.\n\nMeski tekanan modernisasi terus mengikis keunikannya, Condet masih menyimpan banyak warisan: rumah-rumah adat Betawi, masjid tua bersejarah, dan komunitas warga yang masih mempraktikkan tradisi leluhur mereka.\n\nSetu Babakan di Condet adalah magnet budaya yang paling aktif. Di sini, pengunjung bisa menyaksikan pertunjukan seni Betawi secara langsung, mencicipi kuliner tradisional, dan belajar berbagai kerajinan tangan khas Betawi.\n\nMengunjungi Condet adalah perjalanan waktu. Di tengah Jakarta yang terus berubah, Condet berdiri sebagai pengingat bahwa kota ini punya akar budaya yang dalam—akar yang harus dijaga agar kita tidak kehilangan jati diri.',
@@ -170,7 +166,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SENI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-12',
-    'image_url': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+    'image_asset': 'assets/images/artikel/Gambang Kromong.jpg',
     'ringkasan': 'Musik tradisional Betawi hasil perpaduan budaya Tionghoa dan Melayu.',
     'isi':
         'Gambang Kromong adalah musik tradisional khas Betawi yang lahir dari perpaduan budaya Tionghoa dan Melayu. Nama "gambang" merujuk pada alat musik mirip xylophone dari kayu, sementara "kromong" adalah gong kecil dari perunggu yang menjadi penanda irama.\n\nOrkes Gambang Kromong terdiri dari berbagai alat musik: gambang, kromong, rebab, kecapi, gendang, seruling, dan kempul. Setiap alat memiliki peran tersendiri dalam menciptakan harmoni yang khas—perpaduan antara melodi Tionghoa yang merdu dengan ritme Melayu yang energik.\n\nLagu-lagu Gambang Kromong menggunakan bahasa Melayu Betawi yang kaya akan pantun dan kiasan. Tema yang diangkat beragam: dari percintaan, humor, kritik sosial, hingga nasihat kehidupan yang dikemas dalam lirik yang indah.\n\nGambang Kromong biasanya mengiringi pertunjukan Lenong dan Tari Cokek—dua seni pertunjukan khas Betawi. Kehadiran musik ini langsung menciptakan suasana hangat dan akrab yang menjadi ciri khas perayaan budaya Betawi.\n\nKini, beberapa musisi muda mulai memadukan Gambang Kromong dengan musik modern seperti jazz dan pop. Eksperimen ini penting untuk memastikan musik tradisional tetap relevan dan diminati oleh generasi yang tumbuh di era digital.',
@@ -187,7 +183,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SEJARAH',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-11',
-    'image_url': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+    'image_asset': 'assets/images/artikel/Pasar Jatinegara.jpeg',
     'ringkasan': 'Sejarah panjang Pasar Jatinegara sebagai pusat perdagangan Jakarta Timur.',
     'isi':
         'Pasar Jatinegara adalah salah satu pasar tertua dan tersibuk di Jakarta. Berdiri sejak era kolonial Belanda, pasar ini telah menjadi pusat perdagangan yang mewarnai kehidupan ekonomi dan sosial masyarakat Jakarta Timur selama lebih dari satu abad.\n\nDi masa lalu, Pasar Jatinegara dikenal sebagai "Meester Cornelis Markt"—nama yang diambil dari pemimpin daerah setempat di era VOC. Pasar ini menjadi tempat pertemuan berbagai etnis: Betawi, Tionghoa, Arab, dan Eropa yang berdagang dan berinteraksi.\n\nKini, Pasar Jatinegara terkenal sebagai surga belanja untuk berbagai kebutuhan: pakaian, elektronik, bahan makanan, hingga hewan peliharaan eksotis. Pasar burung Jatinegara khususnya telah menjadi destinasi tersendiri bagi para pecinta satwa.\n\nArsitektur pasar yang masih mempertahankan sebagian bangunan lama menjadikannya tidak hanya tempat belanja, tetapi juga objek wisata sejarah. Lorong-lorong sempit yang sibuk menyimpan cerita tentang bagaimana perdagangan lintas budaya membentuk karakter Jakarta.\n\nMenjelajahi Pasar Jatinegara adalah petualangan tersendiri. Di antara tumpukan barang dagangan, kita bisa menemukan jejak-jejak sejarah yang mengingatkan bahwa Jakarta adalah kota yang dibangun di atas pertemuan berbagai bangsa dan budaya.',
@@ -209,7 +205,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SENI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-10',
-    'image_url': 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=800',
+    'image_asset': 'assets/images/artikel/Tanjidor.jpg',
     'ringkasan': 'Orkestra jalanan Betawi yang lahir dari era penjajahan Belanda.',
     'isi':
         'Tanjidor adalah musik orkestra khas Betawi yang unik karena lahir dari era penjajahan Belanda. Nama "tanjidor" berasal dari kata Portugis "tangedor" yang berarti alat musik berdawai, meskipun ironisnya instrumen Tanjidor modern justru didominasi alat tiup dan perkusi.\n\nOrkes Tanjidor terdiri dari terompet, trombon, klarinet, saksofon, tuba, gendang, dan simbal. Perpaduan alat musik ini menghasilkan suara yang keras, meriah, dan menghentak—sangat cocok untuk mengiringi arak-arakan dan perayaan di ruang terbuka.\n\nDulunya, Tanjidor adalah musik para budak dan mantan budak yang dilatih bermain musik oleh tuan tanah Belanda untuk keperluan hiburan. Setelah perbudakan dihapuskan, para musisi ini membentuk grup dan menjual jasa hiburan mereka ke kampung-kampung.\n\nDalam tradisi Betawi, Tanjidor selalu hadir dalam perayaan besar: khitanan, pernikahan, dan acara adat lainnya. Suara terompet Tanjidor yang khas menjadi penanda bahwa sebuah perayaan sedang berlangsung.\n\nUpaya pelestarian Tanjidor terus dilakukan meski peminatnya makin berkurang. Beberapa sanggar aktif merekrut dan melatih pemain muda, menyadari bahwa musik ini adalah bagian tak tergantikan dari identitas budaya Betawi.',
@@ -226,7 +222,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'KULINER',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-09',
-    'image_url': 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800',
+    'image_asset': 'assets/images/artikel/Kue Rangi.jpg',
     'ringkasan': 'Mengenal kue rangi, jajanan tradisional Betawi yang semakin langka.',
     'isi':
         'Kue Rangi adalah jajanan tradisional Betawi yang terbuat dari campuran tepung sagu dan kelapa parut, dimasak dalam cetakan berbentuk bunga di atas bara api kecil. Teksturnya kenyal di dalam dan sedikit garing di luar, disajikan dengan siraman gula merah cair yang harum.\n\nNama "rangi" dalam bahasa Betawi berarti "saya" atau bisa juga merujuk pada proses pembuatannya yang "dirangi"—diputar dalam cetakan sambil dipanggang perlahan. Proses ini membutuhkan kesabaran dan keahlian khusus agar kue matang merata.\n\nDulu, penjual Kue Rangi mudah ditemukan di setiap sudut Jakarta—mendorong gerobak kecil dengan peralatan memasak sederhana. Kini, mereka semakin langka, tergeser oleh jajanan modern yang lebih mudah dibuat dan dipasarkan.\n\nBagi warga Betawi generasi tua, aroma Kue Rangi yang menguar membangkitkan kenangan masa kecil yang hangat. Ia bukan sekadar makanan, melainkan nostalgia yang dapat dimakan—jembatan antara masa lalu dan kekinian.\n\nBeberapa inovasi dilakukan untuk menghidupkan kembali Kue Rangi: variasi rasa coklat, pandan, dan matcha mulai ditawarkan, sambil mempertahankan resep dasar yang telah ada selama berabad-abad. Inovasi ini penting untuk memastikan Kue Rangi tidak hanya menjadi cerita masa lalu.',
@@ -248,7 +244,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'TRADISI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-08',
-    'image_url': 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800',
+    'image_asset': 'assets/images/artikel/Betawi Tempo Doeloe.jpg',
     'ringkasan': 'Kekayaan kosakata dan ungkapan unik dalam bahasa Melayu Betawi.',
     'isi':
         'Bahasa Melayu Betawi adalah dialek unik yang berkembang di Jakarta dan sekitarnya. Berbeda dengan Bahasa Melayu standar, dialek Betawi kaya akan kata serapan dari bahasa Arab, Belanda, Portugis, Tionghoa, dan bahasa daerah lainnya—cerminan dari sejarah Jakarta sebagai kota pelabuhan yang kosmopolitan.\n\nBeberapa kata Betawi yang menarik: "ente" (kamu) dari bahasa Arab, "gue" (saya) yang menjadi penanda informal dalam Bahasa Indonesia modern, "nyokap" (ibu) dan "bokap" (ayah) yang kini dipakai luas oleh anak muda Indonesia.\n\nUngkapan khas Betawi juga kaya dan penuh humor: "kagak" berarti tidak, "emang" berarti memang, "bini" berarti istri, dan "aje" sebagai kata penekanan. Cara bicara Betawi yang blak-blakan dan humoris mencerminkan karakter masyarakatnya yang terbuka dan spontan.\n\nBahasa adalah cerminan budaya. Dengan memahami dialek Betawi, kita memahami lebih dalam tentang cara pandang, nilai, dan sejarah masyarakat yang telah menghuni Jakarta selama berabad-abad.\n\nKini, dialek Betawi perlahan tergeser oleh Bahasa Indonesia formal dan slang modern. Namun upaya pelestarian terus dilakukan: kamus dialek Betawi, program siaran dalam dialek Betawi, dan komunitas yang aktif mempromosikan kekayaan bahasa leluhur mereka.',
@@ -265,7 +261,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'TRADISI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-07',
-    'image_url': 'https://images.unsplash.com/photo-1555597673-b21d5c935865?w=800',
+    'image_asset': 'assets/images/artikel/Silat.jpg',
     'ringkasan': 'Seni bela diri khas Betawi yang memadukan kekuatan dan keindahan gerak.',
     'isi':
         'Silat Betawi atau Maen Pukulan adalah seni bela diri tradisional khas masyarakat Betawi. Berbeda dari silat Minang atau Sunda, Maen Pukulan memiliki gaya yang lebih lincah dan eksplosif, dengan serangan mendadak yang tidak terduga.\n\nDalam tradisi Betawi, seorang "jawara"—sebutan untuk pendekar Betawi—dihormati bukan hanya karena kemampuan bertarungnya, tetapi juga karena integritas dan dedikasinya untuk melindungi masyarakat. Jawara adalah figur pelindung di lingkungannya.\n\nGerakan dalam Maen Pukulan terinspirasi dari alam: gerakan harimau, elang, dan monyet menjadi basis beberapa aliran. Setiap gerakan memiliki nama dan filosofi tersendiri, mengajarkan nilai-nilai seperti kesabaran, kecepatan bereaksi, dan pentingnya membaca situasi.\n\nMaen Pukulan selalu hadir dalam upacara pernikahan Betawi, di mana dua pendekar akan beradu dalam "palang pintu"—tradisi saling adu silat dan pantun sebagai syarat sebelum mempelai pria memasuki rumah mempelai wanita.\n\nSaat ini, beberapa perguruan Silat Betawi aktif mengajarkan seni bela diri ini kepada generasi muda. Tidak hanya teknik bertarung, murid-murid juga diajarkan filosofi dan nilai budaya yang menjadi landasan Maen Pukulan.',
@@ -282,7 +278,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'SEJARAH',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-06',
-    'image_url': 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800',
+    'image_asset': 'assets/images/artikel/Kali Ciliwung.png',
     'ringkasan': 'Peran sungai Ciliwung dalam membentuk sejarah dan budaya Jakarta.',
     'isi':
         'Kali Ciliwung adalah sungai yang mengalir sepanjang 120 kilometer dari Gunung Gede di Bogor hingga Teluk Jakarta, melewati jantung kota Jakarta Timur. Sungai ini bukan sekadar aliran air—ia adalah saksi bisu seluruh perjalanan sejarah Jakarta dari zaman ke zaman.\n\nDi masa Kerajaan Sunda, Ciliwung sudah menjadi jalur perdagangan penting. Pelabuhan Sunda Kelapa yang berada di muaranya adalah pintu masuk komoditas lada, rempah, dan berbagai barang dagangan yang membuat wilayah ini diincar oleh berbagai bangsa.\n\nKetika VOC menguasai Batavia, Ciliwung menjadi urat nadi kota. Kanal-kanal yang dibuat Belanda terinspirasi dari sungai-sungai di Amsterdam, dengan Ciliwung sebagai sumber air utama. Di sepanjang bantarannya, gudang-gudang VOC berdiri megah.\n\nMasyarakat Betawi memiliki hubungan spiritual dengan Ciliwung. Berbagai ritual adat seperti "sedekah kali" dilakukan untuk menghormati sungai dan memohon keselamatan. Ikan-ikan di Ciliwung dulunya adalah sumber protein utama masyarakat tepian sungai.\n\nKini, upaya revitalisasi Ciliwung terus dilakukan—dari pengerukan sedimen, penanaman pohon di bantaran, hingga program komunitas warga. Mengembalikan kejayaan Ciliwung adalah mengembalikan bagian penting dari identitas Jakarta.',
@@ -299,7 +295,7 @@ const List<Map<String, dynamic>> artikelData = [
     'kategori': 'TRADISI',
     'author': 'Redaksi Jaktimer',
     'created_at': '2024-01-05',
-    'image_url': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800',
+    'image_asset': 'assets/images/artikel/Pernikahan.jpg',
     'ringkasan': 'Rangkaian ritual pernikahan adat Betawi yang kaya simbolisme.',
     'isi':
         'Pernikahan adat Betawi adalah salah satu perayaan paling meriah dan sarat makna dalam budaya Jakarta. Rangkaian ritualnya bisa berlangsung berhari-hari, mulai dari prosesi lamaran hingga resepsi yang melibatkan seluruh komunitas.\n\nProsesi "Palang Pintu" adalah momen paling dramatis dan dinantikan. Dua pendekar—satu dari pihak mempelai pria dan satu dari pihak mempelai wanita—beradu pantun dan silat. Jika pihak pria berhasil "membuka palang pintu", barulah rombongan pengantin pria diizinkan masuk.\n\nBusana pengantin Betawi disebut "Dandanan Care Haji" untuk pengantin wanita dan "Dandanan Care None Pengantin Cine" untuk yang bergaya Tionghoa-Betawi. Keduanya penuh dengan ornamen emas, manik-manik, dan kain sutra yang mewah.\n\nSetelah akad nikah, ada tradisi "Nebus Puan"—pengantin pria harus menebus pengantin wanita dengan berbagai hadiah yang telah disepakati. Ini bukan soal nilai materi, melainkan simbol kesungguhan dan penghormatan.\n\nMusik Tanjidor dan ondel-ondel selalu meramaikan arak-arakan pengantin Betawi. Kegembiraan yang ditunjukkan bukan hanya milik kedua mempelai, tetapi juga seluruh kampung yang turut bersuka cita—ekspresi nyata dari nilai gotong royong Betawi.',

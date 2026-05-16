@@ -71,8 +71,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
     } catch (_) {}
   }
 
-  List<Map<String, dynamic>> _injectDistance(
-      List<Map<String, dynamic>> data) {
+  List<Map<String, dynamic>> _injectDistance(List<Map<String, dynamic>> data) {
     if (_userPosition == null) return data;
     return data.map((r) {
       final lat = _toDouble(r['latitude']);
@@ -84,18 +83,14 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
     }).toList();
   }
 
-  // ── Badge helper ─────────────────────────────────────────────────────────
+  // ── Badge helper ──────────────────────────────────────────────────────────
   Future<void> _checkAndShowBadges() async {
     if (widget.userId == null) return;
-    final newBadges =
-        await BadgeHelper.checkAndAwardBadges(widget.userId!);
+    final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!);
     if (newBadges.isNotEmpty && mounted) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
-          BadgeHelper.showBadgeQueue(
-            context: context,
-            badges: newBadges,
-          );
+          BadgeHelper.showBadgeQueue(context: context, badges: newBadges);
         }
       });
     }
@@ -107,16 +102,13 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
         widget.onMisiSelesai != null) {
       widget.onMisiSelesai!();
     }
-    // Cek badge setelah review ditulis
     await _checkAndShowBadges();
   }
 
   Future<void> _onRuangAdded() async {
-    if (widget.misiKode == 'tambah_ruang' &&
-        widget.onMisiSelesai != null) {
+    if (widget.misiKode == 'tambah_ruang' && widget.onMisiSelesai != null) {
       widget.onMisiSelesai!();
     }
-    // Cek badge setelah ruang ditambahkan
     await _checkAndShowBadges();
   }
 
@@ -194,18 +186,14 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
       _selectedFilter = filter;
       if (filter == 'Fasilitas') {
         _filteredRuang.sort((a, b) {
-          final fa =
-              (a['fasilitas'] ?? '').toString().split(',').length;
-          final fb =
-              (b['fasilitas'] ?? '').toString().split(',').length;
+          final fa = (a['fasilitas'] ?? '').toString().split(',').length;
+          final fb = (b['fasilitas'] ?? '').toString().split(',').length;
           return fb.compareTo(fa);
         });
       } else if (filter == 'Tiket Gratis') {
         _filteredRuang.sort((a, b) {
-          final ta =
-              (a['tiket'] ?? '').toString().toLowerCase().trim();
-          final tb =
-              (b['tiket'] ?? '').toString().toLowerCase().trim();
+          final ta = (a['tiket'] ?? '').toString().toLowerCase().trim();
+          final tb = (b['tiket'] ?? '').toString().toLowerCase().trim();
           final aFree = ta.isEmpty || ta == 'gratis' || ta == '0';
           final bFree = tb.isEmpty || tb == 'gratis' || tb == '0';
           if (aFree && !bFree) return -1;
@@ -242,9 +230,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
   String _formatTiket(dynamic tiket) {
     if (tiket == null) return 'Gratis';
     final s = tiket.toString().trim();
-    if (s.isEmpty || s.toLowerCase() == 'gratis' || s == '0') {
-      return 'Gratis';
-    }
+    if (s.isEmpty || s.toLowerCase() == 'gratis' || s == '0') return 'Gratis';
     return s;
   }
 
@@ -261,16 +247,13 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
 
   IconData _fasilitasIcon(String nama) {
     final n = nama.toLowerCase();
-    if (n.contains('wifi') || n.contains('wi-fi'))
-      return Icons.wifi_rounded;
+    if (n.contains('wifi') || n.contains('wi-fi')) return Icons.wifi_rounded;
     if (n.contains('parkir') || n.contains('park'))
       return Icons.local_parking_rounded;
-    if (n.contains('toilet') ||
-        n.contains('wc') ||
-        n.contains('kamar mandi')) return Icons.wc_rounded;
-    if (n.contains('mushola') ||
-        n.contains('masjid') ||
-        n.contains('ibadah')) return Icons.mosque_rounded;
+    if (n.contains('toilet') || n.contains('wc') || n.contains('kamar mandi'))
+      return Icons.wc_rounded;
+    if (n.contains('mushola') || n.contains('masjid') || n.contains('ibadah'))
+      return Icons.mosque_rounded;
     if (n.contains('kantin') ||
         n.contains('makan') ||
         n.contains('restoran') ||
@@ -279,23 +262,46 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
     if (n.contains('playground') ||
         n.contains('bermain') ||
         n.contains('anak')) return Icons.child_care_rounded;
-    if (n.contains('jogging') ||
-        n.contains('lari') ||
-        n.contains('olahraga')) return Icons.directions_run_rounded;
-    if (n.contains('bangku') ||
-        n.contains('kursi') ||
-        n.contains('gazebo')) return Icons.chair_outlined;
+    if (n.contains('jogging') || n.contains('lari') || n.contains('olahraga'))
+      return Icons.directions_run_rounded;
+    if (n.contains('bangku') || n.contains('kursi') || n.contains('gazebo'))
+      return Icons.chair_outlined;
     if (n.contains('lampu') || n.contains('penerangan'))
       return Icons.light_mode_rounded;
-    if (n.contains('air') ||
-        n.contains('danau') ||
-        n.contains('kolam')) return Icons.water_rounded;
+    if (n.contains('air') || n.contains('danau') || n.contains('kolam'))
+      return Icons.water_rounded;
     return Icons.check_circle_outline_rounded;
   }
 
   String _shortAlamat(String? raw) {
     if (raw == null || raw.isEmpty) return '';
     return raw.split(',').first.trim();
+  }
+
+  Widget _buildLocalImage({
+    required Map<String, dynamic> r,
+    required double height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    return Image.asset(
+      r['image_asset'] ?? 'assets/images/ruang/placeholder.png',
+      height: height,
+      width: width ?? double.infinity,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: height,
+        width: width ?? double.infinity,
+        color: const Color(0xFFFFF3EC),
+        child: const Center(
+          child: Icon(
+            Icons.park_rounded,
+            color: Color(0xFFF7924A),
+            size: 36,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -312,8 +318,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
         ? _filteredRuang.first
         : null;
     final gridItems = (!isSearching && _filteredRuang.length > 1)
-        ? _filteredRuang.sublist(
-            1, _filteredRuang.length.clamp(1, 3))
+        ? _filteredRuang.sublist(1, _filteredRuang.length.clamp(1, 3))
         : <Map<String, dynamic>>[];
     final listItems = isSearching
         ? _filteredRuang
@@ -332,16 +337,15 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                    color: Color(0xFFF7924A)))
+                child: CircularProgressIndicator(color: Color(0xFFF7924A)),
+              )
             : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // ── HEADER ───────────────────────────────────────
+                  // ── HEADER ───────────────────────────────────────────────
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -356,8 +360,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                                     color: const Color(0xFFFFF3EC),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                        color:
-                                            const Color(0xFFFBD2B6)),
+                                        color: const Color(0xFFFBD2B6)),
                                   ),
                                   child: const Icon(
                                     Icons.arrow_back_ios_new_rounded,
@@ -368,8 +371,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                               ),
                               const SizedBox(width: 12),
                               const Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Jelajahi Ruang Terbuka',
@@ -400,13 +402,10 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                               controller: _searchController,
                               style: const TextStyle(fontSize: 14),
                               decoration: InputDecoration(
-                                hintText:
-                                    'Cari taman atau ruang terbuka...',
+                                hintText: 'Cari taman atau ruang terbuka...',
                                 hintStyle: const TextStyle(
-                                    color: Color(0xFFBBBBBB),
-                                    fontSize: 14),
-                                prefixIcon: const Icon(
-                                    Icons.search_rounded,
+                                    color: Color(0xFFBBBBBB), fontSize: 14),
+                                prefixIcon: const Icon(Icons.search_rounded,
                                     color: Color(0xFFBBBBBB)),
                                 suffixIcon: isSearching
                                     ? GestureDetector(
@@ -414,15 +413,13 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                                           _searchController.clear();
                                           _onSearch();
                                         },
-                                        child: const Icon(
-                                            Icons.close_rounded,
+                                        child: const Icon(Icons.close_rounded,
                                             color: Color(0xFFBBBBBB)),
                                       )
                                     : null,
                                 border: InputBorder.none,
                                 contentPadding:
-                                    const EdgeInsets.symmetric(
-                                        vertical: 14),
+                                    const EdgeInsets.symmetric(vertical: 14),
                               ),
                             ),
                           ),
@@ -435,18 +432,14 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                                 return GestureDetector(
                                   onTap: () => _applyFilter(f),
                                   child: Container(
-                                    margin: const EdgeInsets.only(
-                                        right: 8),
-                                    padding:
-                                        const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8),
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: selected
                                           ? const Color(0xFFF7924A)
                                           : const Color(0xFFFFF3EC),
-                                      borderRadius:
-                                          BorderRadius.circular(50),
+                                      borderRadius: BorderRadius.circular(50),
                                       border: Border.all(
                                         color: selected
                                             ? const Color(0xFFF7924A)
@@ -474,12 +467,11 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                     ),
                   ),
 
-                  // ── FEATURED ─────────────────────────────────────
+                  // ── FEATURED ─────────────────────────────────────────────
                   if (featured != null)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: GestureDetector(
                           onTap: () => Navigator.push(
                             context,
@@ -492,138 +484,126 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Stack(
-                              children: [
-                                SizedBox(
-                                  height: 200,
-                                  width: double.infinity,
-                                  child: Image.network(
-                                    featured['image_url'] ?? '',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        Container(
-                                      color: const Color(0xFFFFF3EC),
-                                      child: const Icon(
-                                          Icons.park_rounded,
-                                          size: 48,
-                                          color: Color(0xFFF7924A)),
+                            child: SizedBox(
+                              height: 200,
+                              width: double.infinity,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  _buildLocalImage(r: featured, height: 200),
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Color(0xCC000000),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Color(0xCC000000),
+                                  Positioned(
+                                    top: 14,
+                                    left: 14,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF7924A),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'UNGGULAN',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 14,
+                                    right: 14,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                              Icons.location_on_rounded,
+                                              size: 14,
+                                              color: Color(0xFFF7924A)),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            _formatDistance(
+                                                featured['distance']),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF1A1A2E),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 14,
-                                  left: 14,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF7924A),
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: const Text(
-                                      'UNGGULAN',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 14,
-                                  right: 14,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
+                                  Positioned(
+                                    bottom: 14,
+                                    left: 14,
+                                    right: 14,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(
-                                            Icons.location_on_rounded,
-                                            size: 14,
-                                            color: Color(0xFFF7924A)),
-                                        const SizedBox(width: 2),
                                         Text(
-                                          _formatDistance(
-                                              featured['distance']),
+                                          featured['nama'] ?? '',
                                           style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF1A1A2E),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _formatTiket(featured['tiket']),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFFFFD9B0),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  bottom: 14,
-                                  left: 14,
-                                  right: 14,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        featured['nama'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _formatTiket(featured['tiket']),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Color(0xFFFFD9B0),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
 
-                  // ── GRID ─────────────────────────────────────────
+                  // ── GRID ─────────────────────────────────────────────────
                   if (gridItems.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                         child: Row(
                           children: gridItems.map((r) {
                             return Expanded(
                               child: Padding(
                                 padding: EdgeInsets.only(
-                                  right:
-                                      r == gridItems.last ? 0 : 10,
+                                  right: r == gridItems.last ? 0 : 10,
                                 ),
                                 child: GestureDetector(
                                   onTap: () => Navigator.push(
@@ -631,8 +611,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                                     MaterialPageRoute(
                                       builder: (_) => RuangDetailScreen(
                                         ruang: r,
-                                        onReviewSubmitted:
-                                            _onReviewSubmitted,
+                                        onReviewSubmitted: _onReviewSubmitted,
                                       ),
                                     ),
                                   ),
@@ -645,11 +624,10 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                       ),
                     ),
 
-                  // ── LIST ─────────────────────────────────────────
+                  // ── LIST ─────────────────────────────────────────────────
                   if (listItems.isNotEmpty)
                     SliverPadding(
-                      padding:
-                          const EdgeInsets.fromLTRB(20, 14, 20, 100),
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (_, i) {
@@ -660,8 +638,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                                 MaterialPageRoute(
                                   builder: (_) => RuangDetailScreen(
                                     ruang: r,
-                                    onReviewSubmitted:
-                                        _onReviewSubmitted,
+                                    onReviewSubmitted: _onReviewSubmitted,
                                   ),
                                 ),
                               ),
@@ -686,16 +663,14 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                               'Tidak ada hasil untuk\n"${_searchController.text}"',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF999999)),
+                                  fontSize: 14, color: Color(0xFF999999)),
                             ),
                           ],
                         ),
                       ),
                     )
                   else
-                    const SliverToBoxAdapter(
-                        child: SizedBox(height: 100)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
       ),
@@ -710,8 +685,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: const Color(0xFFFBD2B6), width: 1.2),
+        border: Border.all(color: const Color(0xFFFBD2B6), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,19 +695,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                 const BorderRadius.vertical(top: Radius.circular(16)),
             child: Stack(
               children: [
-                SizedBox(
-                  height: 110,
-                  width: double.infinity,
-                  child: Image.network(
-                    r['image_url'] ?? '',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFFFFF3EC),
-                      child: const Icon(Icons.park_rounded,
-                          color: Color(0xFFF7924A)),
-                    ),
-                  ),
-                ),
+                _buildLocalImage(r: r, height: 110),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -817,8 +779,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Icon(_fasilitasIcon(f),
-                              size: 13,
-                              color: const Color(0xFFF7924A)),
+                              size: 13, color: const Color(0xFFF7924A)),
                         ),
                       );
                     }).toList(),
@@ -842,8 +803,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: const Color(0xFFFBD2B6), width: 1.2),
+        border: Border.all(color: const Color(0xFFFBD2B6), width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -853,15 +813,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
             child: SizedBox(
               width: 88,
               height: 88,
-              child: Image.network(
-                r['image_url'] ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFFFF3EC),
-                  child: const Icon(Icons.park_rounded,
-                      color: Color(0xFFF7924A)),
-                ),
-              ),
+              child: _buildLocalImage(r: r, height: 88, width: 88),
             ),
           ),
           const SizedBox(width: 14),
@@ -950,8 +902,7 @@ class _JelajahRuangScreenState extends State<JelajahRuangScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Icon(_fasilitasIcon(f),
-                              size: 14,
-                              color: const Color(0xFFF7924A)),
+                              size: 14, color: const Color(0xFFF7924A)),
                         ),
                       );
                     }).toList(),

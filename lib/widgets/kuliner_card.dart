@@ -23,7 +23,7 @@ class KulinerCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFBD2B6), width: 1.5),  // ← ini
+          border: Border.all(color: const Color(0xFFFBD2B6), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -37,18 +37,20 @@ class KulinerCard extends StatelessWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                kuliner['image_url'] ?? '',
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Image.asset(
+                kuliner['image_asset'] ?? 'lib/assets/images/kuliner/placeholder.png',
                 height: 110,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   height: 110,
                   color: const Color(0xFFFFF3EC),
-                  child: const Icon(Icons.restaurant_rounded,
-                      color: Color(0xFFFF6B35), size: 36),
+                  child: const Icon(
+                    Icons.park_rounded,
+                    color: Color(0xFFF7924A),
+                    size: 36,
+                  ),
                 ),
               ),
             ),

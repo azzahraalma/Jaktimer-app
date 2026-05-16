@@ -1,13 +1,3 @@
-// lib/data/kuis_harian_data.dart
-//
-// 30 soal kuis harian budaya Jakarta Timur.
-// Setiap soal punya: id, pertanyaan, pilihan (4), jawaban_benar (index 0-3),
-// penjelasan (ditampilkan kalau jawaban salah), kategori.
-//
-// Sistem rotasi: shuffle 30 soal di awal bulan (seed = userId + bulan + tahun),
-// lalu tampilkan 1 soal per hari secara berurutan selama 30 hari.
-// Dengan seed unik per user, urutan soal berbeda antar user.
-
 const List<Map<String, dynamic>> kuisHarianData = [
   {
     'id': 1,

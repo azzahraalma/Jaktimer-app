@@ -33,5 +33,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  #assets:
-    #- assets/images/
+  assets:
+    - lib/assets/images/kuliner
+    - lib/assets/images/ruang

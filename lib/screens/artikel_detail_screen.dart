@@ -1,29 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
-class ArtikelDetailScreen extends StatefulWidget {
+class ArtikelDetailScreen extends StatelessWidget {
   final Map<String, dynamic> artikel;
 
   const ArtikelDetailScreen({super.key, required this.artikel});
-
-  @override
-  State<ArtikelDetailScreen> createState() => _ArtikelDetailScreenState();
-}
-
-class _ArtikelDetailScreenState extends State<ArtikelDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _kuisAnimController;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _kuisAnimController.dispose();
-    super.dispose();
-  }
 
   Color _kategoriColor(String kategori) {
     switch (kategori) {
@@ -42,7 +23,6 @@ class _ArtikelDetailScreenState extends State<ArtikelDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final artikel = widget.artikel;
     final kategori = artikel['kategori'] as String? ?? '';
     final color = _kategoriColor(kategori);
 
@@ -50,11 +30,11 @@ class _ArtikelDetailScreenState extends State<ArtikelDetailScreen>
       backgroundColor: const Color.fromARGB(255, 255, 235, 222),
       body: CustomScrollView(
         slivers: [
-          // ── Hero Image App Bar ──────────────────────────────────────
+          // ── Hero Image App Bar ────────────────────────────────────────
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            backgroundColor: Colors.white,  
+            backgroundColor: Colors.white,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
@@ -92,11 +72,20 @@ class _ArtikelDetailScreenState extends State<ArtikelDetailScreen>
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    artikel['image_url'] as String? ?? '',
+                  Image.asset(
+                    artikel['image_asset'] ?? 'assets/images/artikel/placeholder.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    width: double.infinity,
+                    height: 200, // sesuaikan dengan kebutuhan layout
+                    errorBuilder: (context, error, stackTrace) => Container(
                       color: const Color(0xFF1A3C5E),
+                      child: const Center(
+                        child: Icon(
+                          Icons.article_rounded,
+                          color: Color(0xFFF7924A),
+                          size: 36,
+                        ),
+                      ),
                     ),
                   ),
                   // Gradient overlay
@@ -145,132 +134,128 @@ class _ArtikelDetailScreenState extends State<ArtikelDetailScreen>
             ),
           ),
 
-          // ── Konten ──────────────────────────────────────────────────
+          // ── Konten ───────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.only(top: 0),
-              child: Column(
-                children: [
-                  // Card utama konten
-                  Container(
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.07),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Judul
-                        Text(
-                          artikel['judul'] as String? ?? '',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A2E),
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Meta info
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.person_outline_rounded,
-                                  size: 16, color: color),
-                            ),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  artikel['author'] as String? ?? 'Redaksi',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A2E),
-                                  ),
-                                ),
-                                Text(
-                                  artikel['created_at'] as String? ?? '',
-                                  style: const TextStyle(
-                                      fontSize: 10, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-                        Divider(color: Colors.grey.shade100, height: 1),
-                        const SizedBox(height: 16),
-
-                        // Ringkasan
-                        if (artikel['ringkasan'] != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: color.withOpacity(0.15),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(Icons.format_quote_rounded,
-                                    color: color, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    artikel['ringkasan'] as String,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: color.withOpacity(0.9),
-                                      fontStyle: FontStyle.italic,
-                                      height: 1.55,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Isi artikel
-                        Text(
-                          artikel['isi'] as String? ?? '',
-                          style: const TextStyle(
-                            fontSize: 14.5,
-                            color: Color(0xFF333333),
-                            height: 1.8,
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.07),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Judul
+                      Text(
+                        artikel['judul'] as String? ?? '',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1A2E),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Meta info
+                      Row(
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.person_outline_rounded,
+                                size: 16, color: color),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                artikel['author'] as String? ?? 'Redaksi',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1A1A2E),
+                                ),
+                              ),
+                              Text(
+                                artikel['created_at'] as String? ?? '',
+                                style: const TextStyle(
+                                    fontSize: 10, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+                      Divider(color: Colors.grey.shade100, height: 1),
+                      const SizedBox(height: 16),
+
+                      // Ringkasan
+                      if (artikel['ringkasan'] != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: color.withOpacity(0.15),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.format_quote_rounded,
+                                  color: color, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  artikel['ringkasan'] as String,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: color.withOpacity(0.9),
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.55,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Isi artikel
+                      Text(
+                        artikel['isi'] as String? ?? '',
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          color: Color(0xFF333333),
+                          height: 1.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ],

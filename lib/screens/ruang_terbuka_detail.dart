@@ -103,8 +103,8 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
           backgroundColor: const Color(0xFFF7924A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -126,7 +126,6 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
       widget.onReviewSubmitted!();
     }
 
-    // ── Cek badge ──────────────────────────────────────────────────────────
     await _checkAndShowBadges();
 
     _showXp();
@@ -149,10 +148,9 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
           ),
           backgroundColor: const Color(0xFFF7924A),
           behavior: SnackBarBehavior.floating,
-          margin:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -233,13 +231,20 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        r['image_url'] ?? '',
+                      Image.asset(
+                        r['image_asset'] ??
+                            'assets/images/ruang/placeholder.png',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
                           color: const Color(0xFFFFF3EC),
-                          child: const Icon(Icons.park_rounded,
-                              color: Color(0xFFF7924A), size: 64),
+                          child: const Center(
+                            child: Icon(
+                              Icons.park_rounded,
+                              color: Color(0xFFF7924A),
+                              size: 48,
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -254,7 +259,7 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
                               end: Alignment.topCenter,
                               colors: [
                                 Color(0xCCFFFFFF),
-                                Colors.transparent
+                                Colors.transparent,
                               ],
                             ),
                           ),
@@ -290,7 +295,8 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: GestureDetector(
                       onTap: () {
-                        Share.share('Yuk Jelajah Jakarta Timur Bareng si Timo!');
+                        Share.share(
+                            'Yuk Jelajah Jakarta Timur Bareng si Timo!');
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -409,7 +415,8 @@ class _RuangDetailScreenState extends State<RuangDetailScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                   children: [
                                     const Text(
                                       'TIKET MASUK',

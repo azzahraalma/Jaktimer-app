@@ -9,7 +9,7 @@ class JelajahKulinerScreen extends StatefulWidget {
   final String? misiKode;
   final int? userId;
   final bool openAddForm;
-  final bool fromMisi; 
+  final bool fromMisi;
   final VoidCallback? onMisiSelesai;
 
   const JelajahKulinerScreen({
@@ -51,11 +51,10 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     }
   }
 
-  // ── Badge helper ─────────────────────────────────────────────────────────
+  // ── Badge helper ──────────────────────────────────────────────────────────
   Future<void> _checkAndShowBadges() async {
     if (widget.userId == null) return;
-    final newBadges =
-        await BadgeHelper.checkAndAwardBadges(widget.userId!);
+    final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!);
     if (newBadges.isNotEmpty && mounted) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
@@ -74,16 +73,13 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
         widget.onMisiSelesai != null) {
       widget.onMisiSelesai!();
     }
-    // Cek badge setelah review ditulis
     await _checkAndShowBadges();
   }
 
   Future<void> _onKulinerAdded() async {
-    if (widget.misiKode == 'tambah_kuliner' &&
-        widget.onMisiSelesai != null) {
+    if (widget.misiKode == 'tambah_kuliner' && widget.onMisiSelesai != null) {
       widget.onMisiSelesai!();
     }
-    // Cek badge setelah kuliner ditambahkan
     await _checkAndShowBadges();
   }
 
@@ -168,6 +164,34 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     return raw.split(',').first.trim();
   }
 
+  Widget _buildLocalImage({
+    required Map<String, dynamic> k,
+    required double height,
+    double? width,
+    BoxFit fit = BoxFit.cover,
+    Widget? fallbackIcon,
+  }) {
+    return Image.asset(
+      k['image_asset'] ?? 'assets/images/kuliner/placeholder.png',
+      height: height,
+      width: width ?? double.infinity,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) => Container(
+        height: height,
+        width: width ?? double.infinity,
+        color: const Color(0xFFFFF3EC),
+        child: Center(
+          child: fallbackIcon ??
+              const Icon(
+                Icons.restaurant_rounded,
+                color: Color(0xFFF7924A),
+                size: 36,
+              ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -178,13 +202,11 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
   Widget build(BuildContext context) {
     final isSearching = _isSearching;
 
-    final featured =
-        (!isSearching && _filteredKuliner.isNotEmpty)
-            ? _filteredKuliner.first
-            : null;
+    final featured = (!isSearching && _filteredKuliner.isNotEmpty)
+        ? _filteredKuliner.first
+        : null;
     final gridItems = (!isSearching && _filteredKuliner.length > 1)
-        ? _filteredKuliner.sublist(
-            1, _filteredKuliner.length.clamp(1, 3))
+        ? _filteredKuliner.sublist(1, _filteredKuliner.length.clamp(1, 3))
         : <Map<String, dynamic>>[];
     final listItems = isSearching
         ? _filteredKuliner
@@ -203,16 +225,15 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                    color: Color(0xFFF7924A)))
+                child: CircularProgressIndicator(color: Color(0xFFF7924A)),
+              )
             : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  // ── HEADER ───────────────────────────────────────
+                  // ── HEADER ───────────────────────────────────────────────
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -227,8 +248,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                                     color: const Color(0xFFFFF3EC),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                        color:
-                                            const Color(0xFFFBD2B6)),
+                                        color: const Color(0xFFFBD2B6)),
                                   ),
                                   child: const Icon(
                                     Icons.arrow_back_ios_new_rounded,
@@ -239,8 +259,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                               ),
                               const SizedBox(width: 12),
                               const Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     'Jelajahi Kuliner',
@@ -271,13 +290,10 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                               controller: _searchController,
                               style: const TextStyle(fontSize: 14),
                               decoration: InputDecoration(
-                                hintText:
-                                    'Cari sate, bakso, atau kafe...',
+                                hintText: 'Cari sate, bakso, atau kafe...',
                                 hintStyle: const TextStyle(
-                                    color: Color(0xFFBBBBBB),
-                                    fontSize: 14),
-                                prefixIcon: const Icon(
-                                    Icons.search_rounded,
+                                    color: Color(0xFFBBBBBB), fontSize: 14),
+                                prefixIcon: const Icon(Icons.search_rounded,
                                     color: Color(0xFFBBBBBB)),
                                 suffixIcon: isSearching
                                     ? GestureDetector(
@@ -285,15 +301,13 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                                           _searchController.clear();
                                           _onSearch();
                                         },
-                                        child: const Icon(
-                                            Icons.close_rounded,
+                                        child: const Icon(Icons.close_rounded,
                                             color: Color(0xFFBBBBBB)),
                                       )
                                     : null,
                                 border: InputBorder.none,
                                 contentPadding:
-                                    const EdgeInsets.symmetric(
-                                        vertical: 14),
+                                    const EdgeInsets.symmetric(vertical: 14),
                               ),
                             ),
                           ),
@@ -306,18 +320,14 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                                 return GestureDetector(
                                   onTap: () => _applyFilter(f),
                                   child: Container(
-                                    margin: const EdgeInsets.only(
-                                        right: 8),
-                                    padding:
-                                        const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 8),
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: selected
                                           ? const Color(0xFFF7924A)
                                           : const Color(0xFFFFF3EC),
-                                      borderRadius:
-                                          BorderRadius.circular(50),
+                                      borderRadius: BorderRadius.circular(50),
                                       border: Border.all(
                                         color: selected
                                             ? const Color(0xFFF7924A)
@@ -345,12 +355,11 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                     ),
                   ),
 
-                  // ── FEATURED ─────────────────────────────────────
+                  // ── FEATURED ─────────────────────────────────────────────
                   if (featured != null)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: GestureDetector(
                           onTap: () => Navigator.push(
                             context,
@@ -363,132 +372,121 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
-                            child: Stack(
-                              children: [
-                                SizedBox(
-                                  height: 200,
-                                  width: double.infinity,
-                                  child: Image.network(
-                                    featured['image_url'] ?? '',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) =>
-                                        Container(
-                                      color: const Color(0xFFFFF3EC),
-                                      child: const Icon(
-                                          Icons.restaurant_rounded,
-                                          size: 48,
-                                          color: Color(0xFFF7924A)),
+                            child: SizedBox(
+                              height: 200,
+                              width: double.infinity,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  _buildLocalImage(k: featured, height: 200),
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            Color(0xCC000000),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          Color(0xCC000000),
+                                  Positioned(
+                                    top: 14,
+                                    left: 14,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF7924A),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'POPULER',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 14,
+                                    right: 14,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.star_rounded,
+                                              size: 14,
+                                              color: Color(0xFFFFB800)),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            '${featured['rating'] ?? '-'}',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF1A1A2E),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 14,
-                                  left: 14,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF7924A),
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: const Text(
-                                      'POPULER',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 14,
-                                  right: 14,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: Row(
+                                  Positioned(
+                                    bottom: 14,
+                                    left: 14,
+                                    right: 14,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(Icons.star_rounded,
-                                            size: 14,
-                                            color: Color(0xFFFFB800)),
-                                        const SizedBox(width: 2),
                                         Text(
-                                          '${featured['rating'] ?? '-'}',
+                                          featured['nama'] ?? '',
                                           style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF1A1A2E),
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _formatHarga(
+                                            featured['harga_min'],
+                                            featured['harga_max'],
+                                          ),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFFFFD9B0),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ),
-                                Positioned(
-                                  bottom: 14,
-                                  left: 14,
-                                  right: 14,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        featured['nama'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _formatHarga(
-                                          featured['harga_min'],
-                                          featured['harga_max'],
-                                        ),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: Color(0xFFFFD9B0),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
 
-                  // ── GRID ─────────────────────────────────────────
+                  // ── GRID ─────────────────────────────────────────────────
                   if (gridItems.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                         child: Row(
                           children: gridItems.map((k) {
                             return Expanded(
@@ -500,11 +498,9 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                                   onTap: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          KulinerDetailScreen(
+                                      builder: (_) => KulinerDetailScreen(
                                         kuliner: k,
-                                        onReviewSubmitted:
-                                            _onReviewSubmitted,
+                                        onReviewSubmitted: _onReviewSubmitted,
                                       ),
                                     ),
                                   ),
@@ -517,11 +513,10 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                       ),
                     ),
 
-                  // ── LIST ─────────────────────────────────────────
+                  // ── LIST ─────────────────────────────────────────────────
                   if (listItems.isNotEmpty)
                     SliverPadding(
-                      padding:
-                          const EdgeInsets.fromLTRB(20, 14, 20, 100),
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (_, i) {
@@ -532,8 +527,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                                 MaterialPageRoute(
                                   builder: (_) => KulinerDetailScreen(
                                     kuliner: k,
-                                    onReviewSubmitted:
-                                        _onReviewSubmitted,
+                                    onReviewSubmitted: _onReviewSubmitted,
                                   ),
                                 ),
                               ),
@@ -558,16 +552,14 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                               'Tidak ada hasil untuk\n"${_searchController.text}"',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF999999)),
+                                  fontSize: 14, color: Color(0xFF999999)),
                             ),
                           ],
                         ),
                       ),
                     )
                   else
-                    const SliverToBoxAdapter(
-                        child: SizedBox(height: 100)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
       ),
@@ -592,19 +584,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                 const BorderRadius.vertical(top: Radius.circular(16)),
             child: Stack(
               children: [
-                SizedBox(
-                  height: 110,
-                  width: double.infinity,
-                  child: Image.network(
-                    k['image_url'] ?? '',
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFFFFF3EC),
-                      child: const Icon(Icons.restaurant_rounded,
-                          color: Color(0xFFF7924A)),
-                    ),
-                  ),
-                ),
+                _buildLocalImage(k: k, height: 110),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -686,15 +666,7 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
             child: SizedBox(
               width: 88,
               height: 88,
-              child: Image.network(
-                k['image_url'] ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFFFF3EC),
-                  child: const Icon(Icons.restaurant_rounded,
-                      color: Color(0xFFF7924A)),
-                ),
-              ),
+              child: _buildLocalImage(k: k, height: 88, width: 88),
             ),
           ),
           const SizedBox(width: 14),

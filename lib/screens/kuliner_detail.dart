@@ -59,7 +59,8 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
 
   // ── Badge: cek dan tampilkan via overlay ──────────────────────────────────
   Future<void> _checkAndShowBadges() async {
-    final newBadges = await BadgeHelper.checkAndAwardBadges(1); // userId default 1
+    final newBadges =
+        await BadgeHelper.checkAndAwardBadges(1); // userId default 1
     if (newBadges.isEmpty || !mounted) return;
 
     Future.delayed(const Duration(seconds: 2), () {
@@ -110,8 +111,8 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
           backgroundColor: const Color(0xFFF7924A),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -134,7 +135,6 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
       await widget.onReviewSubmitted!();
     }
 
-    // ── Cek badge ──────────────────────────────────────────────────────────
     await _checkAndShowBadges();
 
     setState(() => _showXpPopup = true);
@@ -160,10 +160,9 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
           ),
           backgroundColor: const Color(0xFFF7924A),
           behavior: SnackBarBehavior.floating,
-          margin:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -240,13 +239,20 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        k['image_url'] ?? '',
+                      Image.asset(
+                        k['image_asset'] ??
+                            'assets/images/kuliner/placeholder.png',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
                           color: const Color(0xFFFFF3EC),
-                          child: const Icon(Icons.restaurant_rounded,
-                              color: Color(0xFFF7924A), size: 64),
+                          child: const Center(
+                            child: Icon(
+                              Icons.restaurant_rounded,
+                              color: Color(0xFFF7924A),
+                              size: 48,
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -261,7 +267,7 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
                               end: Alignment.topCenter,
                               colors: [
                                 Color(0xCCFFFFFF),
-                                Colors.transparent
+                                Colors.transparent,
                               ],
                             ),
                           ),
@@ -297,7 +303,8 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: GestureDetector(
                       onTap: () {
-                        Share.share('Yuk Jelajah Jakarta Timur Bareng si Timo!');
+                        Share.share(
+                            'Yuk Jelajah Jakarta Timur Bareng si Timo!');
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -371,7 +378,8 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFF3EC),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFFBD2B6)),
+                          border:
+                              Border.all(color: const Color(0xFFFBD2B6)),
                         ),
                         child: Row(
                           children: [
@@ -653,8 +661,7 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
     final icon =
         _fasilitasIconMap[label] ?? Icons.check_circle_outline_rounded;
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3EC),
         borderRadius: BorderRadius.circular(50),

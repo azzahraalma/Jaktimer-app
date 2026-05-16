@@ -12,8 +12,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
     'harga_max': 25000,
     'rating': 4.5,
     'jumlah_ulasan': 1,
-    'image_url':
-        'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400',
+    'image_asset':
+        'assets/images/kuliner/Nasi Uduk Rizky Jaya 02 Pecel Lele.jpg',
     'latitude': -6.1940,
     'longitude': 106.9481,
     'jam_buka': '16:00',
@@ -35,8 +35,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
     'harga_max': 45000,
     'rating': 4.6,
     'jumlah_ulasan': 0,
-    'image_url':
-        'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+    'image_asset':
+        'assets/images/kuliner/Kuliner Betawi Punye Gaye.jpg',
     'latitude': -6.1779,
     'longitude': 106.9391,
     'jam_buka': '08:00',
@@ -58,8 +58,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
     'harga_max': 50000,
     'rating': 4.6,
     'jumlah_ulasan': 1,
-    'image_url':
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+    'image_asset':
+        'assets/images/kuliner/Warung Nasi Rempah MPO AJI MIDEH.jpg',
     'latitude': -6.1814,
     'longitude': 106.9336,
     'jam_buka': '10:00',
@@ -81,8 +81,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
     'harga_max': 30000,
     'rating': 4.5,
     'jumlah_ulasan': 0,
-    'image_url':
-        'https://images.unsplash.com/photo-1547592180-85f173990554?w=400',
+    'image_asset':
+        'assets/images/kuliner/Jajan Oseng.jpg',
     'latitude': -6.1832,
     'longitude': 106.9532,
     'jam_buka': '10:00',
@@ -104,8 +104,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
     'harga_max': 50000,
     'rating': 4.7,
     'jumlah_ulasan': 0,
-    'image_url':
-        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+    'image_asset':
+        'assets/images/kuliner/Kulineran Kuliner Batavia.jpg',
     'latitude': -6.2010,
     'longitude': 106.9518,
     'jam_buka': '10:00',
@@ -128,8 +128,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 35000,
   'rating': 4.4,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Nasi Gandul Pakde.jpg',
   'latitude': -6.2320,
   'longitude': 106.9188,
   'jam_buka': '09:00',
@@ -151,8 +151,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 45000,
   'rating': 4.7,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1547592180-85f173990554?w=400',
+  'image_asset':
+      'assets/images/kuliner/Waroeng Jawa.jpg',
   'latitude': -6.2255,
   'longitude': 106.9203,
   'jam_buka': '07:00',
@@ -174,8 +174,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400',
+  'image_asset':
+      'assets/images/kuliner/Pecel Berkah Jakarta.jpg',
   'latitude': -6.2241,
   'longitude': 106.9170,
   'jam_buka': '06:00',
@@ -197,8 +197,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.6,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+  'image_asset':
+      'assets/images/kuliner/Rumah Makan Betawi H. Abu.png',
   'latitude': -6.2271,
   'longitude': 106.9164,
   'jam_buka': '08:00',
@@ -220,8 +220,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 45000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso Rusuk Solo.jpg',
   'latitude': -6.2235,
   'longitude': 106.9158,
   'jam_buka': '09:00',
@@ -244,8 +244,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 200000,
   'rating': 4.7,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1544025162-d76694265947?w=400',
+  'image_asset':
+      'assets/images/kuliner/Ajwad Resto.jpg',
   'latitude': -6.2726,
   'longitude': 106.8487,
   'jam_buka': '10:00',
@@ -267,8 +267,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 150000,
   'rating': 4.5,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1514326640560-7d063ef2aed5?w=400',
+  'image_asset':
+      'assets/images/kuliner/Rumah Makan Al Mukalla.jpg',
   'latitude': -6.2708,
   'longitude': 106.8501,
   'jam_buka': '10:00',
@@ -290,8 +290,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.4,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400',
+  'image_asset':
+      'assets/images/kuliner/Dapur Kayu Manis.jpg',
   'latitude': -6.2694,
   'longitude': 106.8557,
   'jam_buka': '11:00',
@@ -313,8 +313,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 100000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
+  'image_asset':
+      'assets/images/kuliner/Sate Tegal Abu Salim.jpg',
   'latitude': -6.2698,
   'longitude': 106.8503,
   'jam_buka': '09:00',
@@ -336,8 +336,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.9,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Angkringan De Ginastel.jpg',
   'latitude': -6.2614,
   'longitude': 106.8681,
   'jam_buka': '17:30',
@@ -360,8 +360,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Warung Zamzam Halim Raya.jpg',
   'latitude': -6.2669,
   'longitude': 106.8847,
   'jam_buka': '07:00',
@@ -383,8 +383,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.4,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1547592180-85f173990554?w=400',
+  'image_asset':
+      'assets/images/kuliner/Rumah Makan Nasi Kapau.jpg',
   'latitude': -6.2558,
   'longitude': 106.8789,
   'jam_buka': '00:00',
@@ -406,8 +406,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.7,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Warung Makan Madiun.jpg',
   'latitude': -6.2587,
   'longitude': 106.8811,
   'jam_buka': '08:00',
@@ -429,8 +429,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.1,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
+  'image_asset':
+      'assets/images/kuliner/Garden Kuliner.jpg',
   'latitude': -6.2497,
   'longitude': 106.8913,
   'jam_buka': '09:00',
@@ -452,8 +452,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.8,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
+  'image_asset':
+      'assets/images/kuliner/RUDS Coffee.jpeg',
   'latitude': -6.2921,
   'longitude': 106.8842,
   'jam_buka': '10:00',
@@ -476,8 +476,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.8,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Gudeg-Bu-Nah.jpg',
   'latitude': -6.1991,
   'longitude': 106.8701,
   'jam_buka': '09:00',
@@ -499,8 +499,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.6,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1547592180-85f173990554?w=400',
+  'image_asset':
+      'assets/images/Rumah Makan Minang Sepakat.jpg',
   'latitude': -6.2081,
   'longitude': 106.8502,
   'jam_buka': '00:00',
@@ -522,8 +522,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.4,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400',
+  'image_asset':
+      'assets/images/kuliner/akmi Ayam BBT.jpeg',
   'latitude': -6.2032,
   'longitude': 106.8644,
   'jam_buka': '06:30',
@@ -545,8 +545,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1604908554165-e31a6dcc5f7e?w=400',
+  'image_asset':
+      'assets/images/kuliner/Sop Ayam Klaten Pak Djuned.jpg',
   'latitude': -6.2055,
   'longitude': 106.8522,
   'jam_buka': '08:00',
@@ -568,8 +568,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.4,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Kedai Kayumanis.png',
   'latitude': -6.2017,
   'longitude': 106.8638,
   'jam_buka': '11:00',
@@ -592,8 +592,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.6,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400',
+  'image_asset':
+      'assets/images/kuliner/Mie Ayam Tengki.jpg',
   'latitude': -6.3090,
   'longitude': 106.9001,
   'jam_buka': '09:00',
@@ -615,8 +615,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 20000,
   'rating': 4.6,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Ketoprak Mas Nanang.jpg',
   'latitude': -6.3088,
   'longitude': 106.9034,
   'jam_buka': '14:00',
@@ -638,8 +638,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.6,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso-Gepeng-Mas-Agus.jpg',
   'latitude': -6.3151,
   'longitude': 106.8990,
   'jam_buka': '08:00',
@@ -661,8 +661,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.7,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Nasi Uduk Mpok Odah.jpg',
   'latitude': -6.3201,
   'longitude': 106.9065,
   'jam_buka': '16:00',
@@ -684,8 +684,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.8,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1555126634-323283e090fa?w=400',
+  'image_asset':
+      'assets/images/kuliner/Mie Ayam Kabayan.jpg',
   'latitude': -6.3110,
   'longitude': 106.9012,
   'jam_buka': '09:00',
@@ -708,8 +708,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 40000,
   'rating': 4.9,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1547592180-85f173990554?w=400',
+  'image_asset':
+      'assets/images/kuliner/Sop Kaki Sapi H Tholib.jpg',
   'latitude': -6.2420,
   'longitude': 106.8585,
   'jam_buka': '17:30',
@@ -731,8 +731,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 35000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1555126634-323283e090fa?w=400',
+  'image_asset':
+      'assets/images/kuliner/Mie Ayam Bangka Asan Cipinang.jpeg',
   'latitude': -6.2321,
   'longitude': 106.8902,
   'jam_buka': '07:00',
@@ -754,8 +754,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 20000,
   'rating': 4.9,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Ketoprak Soneta.jpeg',
   'latitude': -6.2212,
   'longitude': 106.8723,
   'jam_buka': '19:00',
@@ -777,8 +777,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.7,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso-Malang-Bang-Dewo.jpg',
   'latitude': -6.2290,
   'longitude': 106.8664,
   'jam_buka': '10:30',
@@ -800,8 +800,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
+  'image_asset':
+      'assets/images/kuliner/Warung Sate H. Giyo.jpg',
   'latitude': -6.2304,
   'longitude': 106.8890,
   'jam_buka': '09:00',
@@ -824,8 +824,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+  'image_asset':
+      'assets/images/kuliner/Kuliner khas Betawi Babe Awie.jpg',
   'latitude': -6.3100,
   'longitude': 106.8900,
   'jam_buka': '09:00',
@@ -847,8 +847,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 3.5,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso viral Ciracas.jpg',
   'latitude': -6.3075,
   'longitude': 106.8771,
   'jam_buka': '10:00',
@@ -870,8 +870,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.4,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=400',
+  'image_asset':
+      'assets/images/kuliner/Kembang-Tahu-dan-Susu-Jahe-Merah-Naomi-Ciracas.jpg',
   'latitude': -6.3091,
   'longitude': 106.8764,
   'jam_buka': '16:00',
@@ -893,8 +893,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.9,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=400',
+  'image_asset':
+      'assets/images/kuliner/JAJANAN PEWE.jpg',
   'latitude': -6.3371,
   'longitude': 106.9022,
   'jam_buka': '11:00',
@@ -916,9 +916,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 35000,
   'rating': 4.9,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400',
-  'latitude': -6.3355,
+  'image_asset':
+      'assets/images/kuliner/HALWA-KITCHEN-CIRACAS.jpg',
   'longitude': 106.9030,
   'jam_buka': '06:00',
   'jam_tutup': '18:00',
@@ -940,8 +939,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 20000,
   'rating': 4.9,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/ketoprak bang jay.jpg',
   'latitude': -6.3390,
   'longitude': 106.8588,
   'jam_buka': '09:00',
@@ -963,8 +962,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.6,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Pondok Bakso Berkah Karang Anyar.jpg',
   'latitude': -6.3080,
   'longitude': 106.8472,
   'jam_buka': '10:00',
@@ -986,8 +985,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 20000,
   'rating': 4.9,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Ketoprak bang dodi.jpg',
   'latitude': -6.3114,
   'longitude': 106.8501,
   'jam_buka': '19:00',
@@ -1009,8 +1008,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.7,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
+  'image_asset':
+      'assets/images/kuliner/Martabak Bangka AL.jpg',
   'latitude': -6.3041,
   'longitude': 106.8621,
   'jam_buka': '17:00',
@@ -1032,8 +1031,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.8,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=400',
+  'image_asset':
+      'assets/images/kuliner/Seblak Teh Dea.jpg',
   'latitude': -6.3232,
   'longitude': 106.8587,
   'jam_buka': '11:00',
@@ -1056,8 +1055,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 50000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso-Gepeng-Jeko-Rawamangun.jpg',
   'latitude': -6.1967,
   'longitude': 106.8890,
   'jam_buka': '10:00',
@@ -1079,8 +1078,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 25000,
   'rating': 4.7,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400',
+  'image_asset':
+      'assets/images/kuliner/Mie Ayam UNGGUL, Rawamangun.jpg',
   'latitude': -6.1954,
   'longitude': 106.8884,
   'jam_buka': '08:30',
@@ -1102,8 +1101,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 20000,
   'rating': 4.8,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?w=400',
+  'image_asset':
+      'assets/images/kuliner/Ketoprak IKIN YES Nusantara.jpg',
   'latitude': -6.1819,
   'longitude': 106.8902,
   'jam_buka': '07:00',
@@ -1125,8 +1124,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.7,
   'jumlah_ulasan': 0,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/Bakso-Sapi-Pak-Peci.jpg',
   'latitude': -6.1907,
   'longitude': 106.8878,
   'jam_buka': '15:30',
@@ -1148,8 +1147,8 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'harga_max': 30000,
   'rating': 4.5,
   'jumlah_ulasan': 1,
-  'image_url':
-      'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400',
+  'image_asset':
+      'assets/images/kuliner/BAKSO WONG WONOGIRI.jpg',
   'latitude': -6.1899,
   'longitude': 106.8885,
   'jam_buka': '09:00',
