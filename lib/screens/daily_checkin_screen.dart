@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../helper/database_helper.dart';
 import '../helper/badge_helper.dart';
 import '../widgets/xp_popup.dart';
@@ -23,6 +24,7 @@ class DailyCheckinScreen extends StatefulWidget {
 
 class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   final DatabaseHelper _db = DatabaseHelper();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   Map<String, dynamic>? _user;
   List<Map<String, dynamic>> _weeklyCheckin = [];
@@ -32,7 +34,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   int _popupXp = 0;
   String _popupLabel = '';
 
-  // Badge popup queue
   final List<Map<String, String>> _pendingBadges = [];
   bool _showingBadge = false;
 
@@ -45,9 +46,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     'tambah_ruang': 100,
   };
 
-  // XP per hari ke-1..7 dalam streak minggu ini
   static const List<int> _xpPerHari = [10, 15, 20, 25, 30, 35, 50];
-
   static const List<int> _xpThresholds = [0, 1000, 2000, 3000, 5000, 99999];
 
   static int _levelFromXp(int xp) {
@@ -60,16 +59,11 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
 
   static String _levelNameFromLevel(int level) {
     switch (level) {
-      case 5:
-        return 'Penakluk';
-      case 4:
-        return 'Penjelajah Sejati';
-      case 3:
-        return 'Penjelajah';
-      case 2:
-        return 'Explorer Sejati';
-      default:
-        return 'Explorer Muda';
+      case 5: return 'Penakluk';
+      case 4: return 'Penjelajah Sejati';
+      case 3: return 'Penjelajah';
+      case 2: return 'Explorer Sejati';
+      default: return 'Explorer Muda';
     }
   }
 
@@ -81,15 +75,35 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   String get _keyKuisResult => 'quiz_result_${widget.userId}_$_todayKey';
   String get _keyArtikelXp => 'artikel_xp_${widget.userId}_$_todayKey';
 
-  // LIFECYCLE
-
   @override
   void initState() {
     super.initState();
     _load();
   }
 
-  // LOAD DATA
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // ── SOUND ──────────────────────────────────────────────
+
+  Future<void> _playXpSound() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('sound/notification/xp_sound.mp3'));
+    } catch (_) {}
+  }
+
+  Future<void> _playBadgeSound() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('sound/notification/badge_sound.mp3'));
+    } catch (_) {}
+  }
+
+  // ── LOAD ───────────────────────────────────────────────
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
@@ -133,7 +147,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     await _db.completeMisi(widget.userId, kode);
   }
 
-  // BADGE POPUP QUEUE
+  // ── BADGE QUEUE ────────────────────────────────────────
 
   void _enqueueBadges(List<Map<String, String>> badges) {
     _pendingBadges.addAll(badges);
@@ -147,6 +161,9 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     }
     setState(() => _showingBadge = true);
     final badge = _pendingBadges.removeAt(0);
+
+    _playBadgeSound();
+
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
     entry = OverlayEntry(
@@ -161,9 +178,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             deskripsi: badge['deskripsi'] ?? '',
             onDismiss: () {
               entry.remove();
-              Future.delayed(const Duration(milliseconds: 400), () {
-                _showNextBadge();
-              });
+              Future.delayed(const Duration(milliseconds: 400), _showNextBadge);
             },
           ),
         ),
@@ -172,7 +187,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     overlay.insert(entry);
   }
 
-  // ACTIONS
+  // ── ACTIONS ────────────────────────────────────────────
 
   Future<void> _handleCheckin() async {
     final success = await _db.dailyCheckin(widget.userId);
@@ -192,6 +207,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   }
 
   void _showXp(int xp, String label) {
+    _playXpSound();
     setState(() {
       _popupXp = xp;
       _popupLabel = label;
@@ -221,24 +237,17 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
 
   String _misiLabel(String kode) {
     switch (kode) {
-      case 'kuis_artikel':
-        return 'Kerjakan kuis di artikel';
-      case 'baca_artikel':
-        return 'Baca artikel hari ini';
-      case 'tambah_review_kuliner':
-        return 'Tambah review kuliner';
-      case 'tambah_review_ruang':
-        return 'Tambah review ruang terbuka';
-      case 'tambah_kuliner':
-        return 'Tambahkan tempat kuliner baru';
-      case 'tambah_ruang':
-        return 'Tambahkan ruang terbuka baru';
-      default:
-        return kode;
+      case 'kuis_artikel': return 'Kerjakan kuis di artikel';
+      case 'baca_artikel': return 'Baca artikel hari ini';
+      case 'tambah_review_kuliner': return 'Tambah review kuliner';
+      case 'tambah_review_ruang': return 'Tambah review ruang terbuka';
+      case 'tambah_kuliner': return 'Tambahkan tempat kuliner baru';
+      case 'tambah_ruang': return 'Tambahkan ruang terbuka baru';
+      default: return kode;
     }
   }
 
-  // XP HELPERS
+  // ── XP HELPERS ─────────────────────────────────────────
 
   int get _xpHariIni {
     int total = 0;
@@ -250,9 +259,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       (d) => d['day'] == todayLabel,
       orElse: () => {'checked': false, 'xp': 0},
     );
-    if (todayRow['checked'] == true) {
-      total += todayRow['xp'] as int;
-    }
+    if (todayRow['checked'] == true) total += todayRow['xp'] as int;
     return total;
   }
 
@@ -291,18 +298,15 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
         break;
       }
     }
-
     if (firstCheckedIdx == -1) {
       final todayIdx = _dayOrder.indexOf(_todayLabel());
       final targetIdx = _dayOrder.indexOf(dayLabel);
       if (todayIdx == -1 || targetIdx == -1) return 1;
       return (targetIdx - todayIdx + 7) % 7 + 1;
     }
-
     final targetIdx = _dayOrder.indexOf(dayLabel);
     if (targetIdx == -1) return 1;
-    final diff = (targetIdx - firstCheckedIdx + 7) % 7;
-    return diff + 1;
+    return (targetIdx - firstCheckedIdx + 7) % 7 + 1;
   }
 
   int _xpUntukHari(String dayLabel) {
@@ -310,15 +314,14 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     return _xpPerHari[hariKe - 1];
   }
 
-  // BUILD
+  // ── BUILD ──────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Color(0xFFF5F5F5),
-        body: Center(
-            child: CircularProgressIndicator(color: Color(0xFFF7924A))),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFF7924A))),
       );
     }
 
@@ -337,7 +340,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           SafeArea(
             child: Column(
               children: [
-                // HEADER 
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: Row(
@@ -390,8 +392,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
               ],
             ),
           ),
-
-          //  XP POPUP 
           if (_showXpPopup)
             Positioned(
               bottom: 100,
@@ -410,7 +410,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     );
   }
 
-  // mascot 
+  // ── WIDGETS ────────────────────────────────────────────
 
   Widget _buildTimoCard({
     required String username,
@@ -430,9 +430,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           Container(
             width: 200,
             height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Image.asset(
@@ -440,33 +438,26 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFFF7924A),
-                  child: const Icon(
-                    Icons.catching_pokemon_rounded,
-                    size: 52,
-                    color: Colors.white,
-                  ),
+                  child: const Icon(Icons.catching_pokemon_rounded,
+                      size: 52, color: Colors.white),
                 ),
               ),
             ),
           ),
-
           const SizedBox(height: 10),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
                 'Si Timo',
                 style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  color: Color(0xFFF7924A),
-                ),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: Color(0xFFF7924A)),
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF3EC),
                   borderRadius: BorderRadius.circular(20),
@@ -475,18 +466,14 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 child: Text(
                   'Lv.$level',
                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFF7924A),
-                  ),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFF7924A)),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
-          // XP Card 
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -496,10 +483,9 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4))
               ],
             ),
             child: Column(
@@ -508,42 +494,29 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Level $level · $levelName',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: Color(0xFF1A1A2E),
-                      ),
-                    ),
-                    Text(
-                      '$xp XP',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                        color: Color(0xFFF7924A),
-                      ),
-                    ),
+                    Text('Level $level · $levelName',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            color: Color(0xFF1A1A2E))),
+                    Text('$xp XP',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                            color: Color(0xFFF7924A))),
                   ],
                 ),
-
                 const SizedBox(height: 2),
-
-                // Sub-teks XP
                 Text(
                   level < 5
                       ? '$xp XP di level ini · kurang $xpKurang XP ke level berikutnya'
                       : '$xp XP · Level Maksimum 🎉',
                   style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF9E9E9E),
-                  ),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF9E9E9E)),
                 ),
-
                 const SizedBox(height: 10),
-
-                // Progress bar
                 TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0, end: progress),
                   duration: const Duration(milliseconds: 700),
@@ -554,43 +527,35 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                         height: 12,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEEEEEE),
-                          borderRadius: BorderRadius.circular(99),
-                        ),
+                            color: const Color(0xFFEEEEEE),
+                            borderRadius: BorderRadius.circular(99)),
                       ),
                       FractionallySizedBox(
                         widthFactor: value,
                         child: Container(
                           height: 12,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7924A),
-                            borderRadius: BorderRadius.circular(99),
-                          ),
+                              color: const Color(0xFFF7924A),
+                              borderRadius: BorderRadius.circular(99)),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '$xp / $xpNeeded XP',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFF7924A),
-                      ),
-                    ),
+                    Text('$xp / $xpNeeded XP',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFF7924A))),
                     Text(
                       level < 5
                           ? 'Menuju ${_levelNameFromLevel(level + 1)}'
                           : 'Level Maksimum! 🎉',
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF999999)),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
                     ),
                   ],
                 ),
@@ -601,7 +566,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       ),
     );
   }
-
 
   Widget _buildWeeklyCard() {
     return Padding(
@@ -614,10 +578,9 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4))
           ],
         ),
         child: Column(
@@ -626,24 +589,18 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Minggu Ini',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 17,
-                    color: Color(0xFF1A1A2E),
-                  ),
-                ),
+                const Text('Minggu Ini',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                        color: Color(0xFF1A1A2E))),
                 Row(
                   children: [
-                    Text(
-                      'Hari ini: +$_xpHariIni XP',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: Color(0xFFF7924A),
-                      ),
-                    ),
+                    Text('Hari ini: +$_xpHariIni XP',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: Color(0xFFF7924A))),
                     const SizedBox(width: 4),
                     const Icon(Icons.trending_up_rounded,
                         color: Color(0xFFF7924A), size: 18),
@@ -680,14 +637,11 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                           borderRadius: BorderRadius.circular(30)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
-                      'Masuk Hari Ini',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
+                    child: const Text('Masuk Hari Ini',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: 14)),
                   ),
                 ),
               ),
@@ -719,14 +673,13 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   }) {
     return Column(
       children: [
-        Text(
-          dayLabel,
-          style: TextStyle(
-            fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-            fontSize: 12,
-            color: isToday ? const Color(0xFFF7924A) : const Color(0xFF000000),
-          ),
-        ),
+        Text(dayLabel,
+            style: TextStyle(
+                fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
+                fontSize: 12,
+                color: isToday
+                    ? const Color(0xFFF7924A)
+                    : const Color(0xFF000000))),
         const SizedBox(height: 6),
         Container(
           width: 36,
@@ -744,39 +697,31 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           ),
           child: checked
               ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-              : Icon(
-                  Icons.star_outline_rounded,
+              : Icon(Icons.star_outline_rounded,
                   color: isToday
                       ? const Color(0xFFF7924A)
                       : const Color(0xFF686868),
-                  size: isToday ? 22 : 18,
-                ),
+                  size: isToday ? 22 : 18),
         ),
         const SizedBox(height: 4),
-        Text(
-          '+$xpHari',
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: checked
-                ? const Color(0xFFF7924A)
-                : isToday
+        Text('+$xpHari',
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: checked
                     ? const Color(0xFFF7924A)
-                    : const Color(0xFFB0B0B0),
-          ),
-        ),
-        Text(
-          'XP',
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.w500,
-            color: checked
-                ? const Color(0xFFF7924A)
-                : isToday
+                    : isToday
+                        ? const Color(0xFFF7924A)
+                        : const Color(0xFFB0B0B0))),
+        Text('XP',
+            style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: checked
                     ? const Color(0xFFF7924A)
-                    : const Color(0xFFB0B0B0),
-          ),
-        ),
+                    : isToday
+                        ? const Color(0xFFF7924A)
+                        : const Color(0xFFB0B0B0))),
       ],
     );
   }
@@ -787,14 +732,11 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Misi Hari Ini',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 19,
-              color: Color(0xFF1A1A2E),
-            ),
-          ),
+          const Text('Misi Hari Ini',
+              style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 19,
+                  color: Color(0xFF1A1A2E))),
           const SizedBox(height: 14),
           _buildMisiCard(
             icon: Icons.quiz_outlined,
@@ -935,9 +877,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
         color: done ? const Color(0xFFFFF8F5) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFF7924A).withOpacity(0.4),
-          width: 1.5,
-        ),
+            color: const Color(0xFFF7924A).withOpacity(0.4), width: 1.5),
       ),
       child: Row(
         children: [
@@ -961,25 +901,24 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: done ? Colors.grey[500] : const Color(0xFF1A1A2E),
-                    decoration:
-                        done ? TextDecoration.lineThrough : TextDecoration.none,
-                  ),
-                ),
+                Text(title,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: done
+                            ? Colors.grey[500]
+                            : const Color(0xFF1A1A2E),
+                        decoration: done
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none)),
                 const SizedBox(height: 2),
-                Text(
-                  '+$xp XP',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    color: done ? Colors.grey[400] : const Color(0xFFF7924A),
-                  ),
-                ),
+                Text('+$xp XP',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: done
+                            ? Colors.grey[400]
+                            : const Color(0xFFF7924A))),
               ],
             ),
           ),
@@ -988,36 +927,27 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                'Selesai ✓',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: Color(0xFF4CAF50),
-                ),
-              ),
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Text('Selesai ✓',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: Color(0xFF4CAF50))),
             )
           else
             GestureDetector(
               onTap: onTap,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7924A),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  buttonLabel,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: Colors.white,
-                  ),
-                ),
+                    color: const Color(0xFFF7924A),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Text(buttonLabel,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: Colors.white)),
               ),
             ),
         ],

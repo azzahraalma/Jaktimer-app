@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/artikel.dart';
@@ -24,6 +25,9 @@ class UlikScreen extends StatefulWidget {
 class _UlikScreenState extends State<UlikScreen> {
   DatabaseHelper? _dbInstance;
   DatabaseHelper get _db => _dbInstance ??= DatabaseHelper();
+
+  // ── Audio ─────────────────────────────────
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   List<Map<String, dynamic>> _randomArtikel = [];
   Map<String, dynamic> _kuisHariIni = {};
@@ -53,6 +57,32 @@ class _UlikScreenState extends State<UlikScreen> {
     super.initState();
     _loadAll();
   }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // ── Sound helpers ─────────────────────────
+
+  Future<void> _playRight() async {
+    try {
+      await _audioPlayer.play(AssetSource('sound/right.mp3'));
+    } catch (e) {
+      debugPrint('Audio right error: $e');
+    }
+  }
+
+  Future<void> _playWrong() async {
+    try {
+      await _audioPlayer.play(AssetSource('sound/wrong.mp3'));
+    } catch (e) {
+      debugPrint('Audio wrong error: $e');
+    }
+  }
+
+  // ── Data ──────────────────────────────────
 
   Map<String, dynamic> _getKuisUntukUser(int userId) {
     final now = DateTime.now();
@@ -106,12 +136,21 @@ class _UlikScreenState extends State<UlikScreen> {
     });
   }
 
+  // ── Submit kuis ───────────────────────────
+
   Future<void> _submitKuis() async {
     if (_selectedOption == null || _submitted) return;
 
     final jawabanBenar = _kuisHariIni['jawaban_benar'] as int;
     final benar = _selectedOption == jawabanBenar;
     final xp = benar ? 50 : 10;
+
+    // ── Play sound sesuai hasil ──
+    if (benar) {
+      await _playRight();
+    } else {
+      await _playWrong();
+    }
 
     setState(() {
       _submitted = true;
@@ -135,6 +174,8 @@ class _UlikScreenState extends State<UlikScreen> {
       await widget.onKuisSelesai!();
     }
   }
+
+  // ── Buka artikel ──────────────────────────
 
   Future<void> _openArtikel(Map<String, dynamic> artikel) async {
     if (!_artikelXpClaimed) {
@@ -165,6 +206,8 @@ class _UlikScreenState extends State<UlikScreen> {
       MaterialPageRoute(builder: (_) => ArtikelDetailScreen(artikel: artikel)),
     );
   }
+
+  // ── Build ─────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -568,6 +611,10 @@ class _UlikScreenState extends State<UlikScreen> {
     );
   }
 }
+
+// ─────────────────────────────────────────────
+//  ARTIKEL GRID CARD
+// ─────────────────────────────────────────────
 
 class _ArtikelGridCard extends StatelessWidget {
   final Map<String, dynamic> artikel;

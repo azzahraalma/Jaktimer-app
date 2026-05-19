@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class BadgePopup extends StatefulWidget {
   final String badgeName;
@@ -24,6 +25,7 @@ class _BadgePopupState extends State<BadgePopup>
   late Animation<double> _slideAnim;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -33,27 +35,30 @@ class _BadgePopupState extends State<BadgePopup>
       duration: const Duration(milliseconds: 600),
     );
     _slideAnim = Tween<double>(begin: 80, end: 0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+        CurvedAnimation(parent: _controller, curve: Curves.easeIn));
     _scaleAnim = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
+    _playSound();
 
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        _controller.reverse().then((_) => widget.onDismiss());
-      }
+      if (mounted) _controller.reverse().then((_) => widget.onDismiss());
     });
+  }
+
+  Future<void> _playSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('sound/notification/badge_sound.mp3'));
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -68,9 +73,8 @@ class _BadgePopupState extends State<BadgePopup>
           child: Transform.scale(
             scale: _scaleAnim.value,
             child: GestureDetector(
-              onTap: () {
-                _controller.reverse().then((_) => widget.onDismiss());
-              },
+              onTap: () =>
+                  _controller.reverse().then((_) => widget.onDismiss()),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.symmetric(
@@ -79,15 +83,13 @@ class _BadgePopupState extends State<BadgePopup>
                   color: const Color(0xFF1A1A2E),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFF7924A).withOpacity(0.4),
-                    width: 1.5,
-                  ),
+                      color: const Color(0xFFF7924A).withOpacity(0.4),
+                      width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFF7924A).withOpacity(0.25),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
+                        color: const Color(0xFFF7924A).withOpacity(0.25),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8))
                   ],
                 ),
                 child: Row(
@@ -97,14 +99,11 @@ class _BadgePopupState extends State<BadgePopup>
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7924A).withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
+                          color: const Color(0xFFF7924A).withOpacity(0.2),
+                          shape: BoxShape.circle),
                       child: Center(
-                        child: Text(
-                          widget.badgeIcon,
-                          style: const TextStyle(fontSize: 24),
-                        ),
+                        child: Text(widget.badgeIcon,
+                            style: const TextStyle(fontSize: 24)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -117,39 +116,29 @@ class _BadgePopupState extends State<BadgePopup>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF7924A).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              '🏅 Badge Baru!',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFF7924A),
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
+                                color: const Color(0xFFF7924A).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20)),
+                            child: const Text('🏅 Badge Baru!',
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFF7924A),
+                                    decoration: TextDecoration.none)),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            widget.badgeName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              fontSize: 14,
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                          Text(
-                            widget.deskripsi,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white.withOpacity(0.6),
-                              decoration: TextDecoration.none,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          Text(widget.badgeName,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  decoration: TextDecoration.none)),
+                          Text(widget.deskripsi,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withOpacity(0.6),
+                                  decoration: TextDecoration.none),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
@@ -158,11 +147,8 @@ class _BadgePopupState extends State<BadgePopup>
                       onTap: () => _controller
                           .reverse()
                           .then((_) => widget.onDismiss()),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: Colors.white.withOpacity(0.5),
-                        size: 18,
-                      ),
+                      child: Icon(Icons.close_rounded,
+                          color: Colors.white.withOpacity(0.5), size: 18),
                     ),
                   ],
                 ),

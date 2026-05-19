@@ -39,6 +39,7 @@ flutter:
     - assets/images/kuliner/
     - assets/images/artikel/
     - assets/images/mascot/
+    - assets/sound/
 
 flutter_launcher_icons:
   android: true

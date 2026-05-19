@@ -36,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _locationGranted = false;
   StreamSubscription<Position>? _positionStream;
 
+  // Raw data dari DB
+  List<Map<String, dynamic>> _allKuliner = [];
+  List<Map<String, dynamic>> _allRuang = [];
+
+  // Data yang sudah di-sort & filter berdasarkan jarak
   List<Map<String, dynamic>> _kulinerList = [];
   List<Map<String, dynamic>> _ruangList = [];
 
@@ -43,6 +48,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _searchDebounce;
 
   int _selectedNav = 0;
+
+  // Radius maksimal rekomendasi (meter) — ubah sesuai kebutuhan
+  static const double _maxRadiusMeters = 10000; // 10 km
+  // Jumlah item yang ditampilkan di beranda
+  static const int _maxItemShown = 10;
 
   @override
   void initState() {
@@ -62,12 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _switchToUlik() {
-  setState(() {
-    _selectedNav = 2; 
-  });
-}
-
+  void _switchToUlik() => setState(() => _selectedNav = 2);
 
   Future<void> _loadUser() async {
     final user = await _db.getUserById(_currentUserId);
@@ -79,11 +84,67 @@ class _HomeScreenState extends State<HomeScreen> {
     final ruang = await _db.getRuangTerbuka();
     if (mounted) {
       setState(() {
-        _kulinerList = kuliner;
-        _ruangList = ruang;
+        _allKuliner = kuliner;
+        _allRuang = ruang;
+        // Sebelum lokasi didapat, tampilkan semua tanpa sort
+        _kulinerList = kuliner.take(_maxItemShown).toList();
+        _ruangList = ruang.take(_maxItemShown).toList();
       });
     }
   }
+
+  // ── Sort & filter berdasarkan jarak ──────────────────────────────────────
+  // Dipanggil setiap kali posisi user diperbarui.
+  // 1. Hitung jarak tiap item ke posisi user
+  // 2. Filter yang jaraknya <= _maxRadiusMeters
+  // 3. Sort ascending (terdekat dulu)
+  // 4. Ambil _maxItemShown teratas
+  // Kalau hasil filter kosong (semua terlalu jauh), fallback ke sort tanpa filter
+  void _sortAndFilterByLocation(Position pos) {
+    double? dist(Map<String, dynamic> item) {
+      final lat = (item['latitude'] as num?)?.toDouble();
+      final lon = (item['longitude'] as num?)?.toDouble();
+      if (lat == null || lon == null) return null;
+      return LocationService.calculateDistance(
+        pos.latitude,
+        pos.longitude,
+        lat,
+        lon,
+      );
+    }
+
+    List<Map<String, dynamic>> sortedFilter(
+        List<Map<String, dynamic>> source) {
+      // Pisahkan item yang punya koordinat valid
+      final withCoord =
+          source.where((e) => dist(e) != null).toList();
+      final withoutCoord =
+          source.where((e) => dist(e) == null).toList();
+
+      // Sort by jarak
+      withCoord.sort((a, b) => dist(a)!.compareTo(dist(b)!));
+
+      // Filter by radius
+      final filtered = withCoord
+          .where((e) => dist(e)! <= _maxRadiusMeters)
+          .toList();
+
+      // Kalau hasil filter kosong, pakai semua yang sudah di-sort (fallback)
+      final result =
+          filtered.isNotEmpty ? filtered : withCoord;
+
+      return [...result, ...withoutCoord].take(_maxItemShown).toList();
+    }
+
+    if (mounted) {
+      setState(() {
+        _kulinerList = sortedFilter(_allKuliner);
+        _ruangList = sortedFilter(_allRuang);
+      });
+    }
+  }
+
+  // ── Location ─────────────────────────────────────────────────────────────
 
   Future<void> _checkLocationAndInit() async {
     final granted = await LocationService.isPermissionGranted();
@@ -138,6 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentPosition = pos;
       _locationLabel = _inferAreaLabel(pos.latitude, pos.longitude);
     });
+    // Sort ulang setiap posisi diperbarui
+    _sortAndFilterByLocation(pos);
   }
 
   String _inferAreaLabel(double lat, double lon) {
@@ -183,6 +246,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,7 +278,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               );
-
                               _loadUser();
                             },
                           ),
@@ -232,7 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomePage() {
-    final firstName = _user?['username']?.toString().split(' ').first ?? 'User';
+    final firstName =
+        _user?['username']?.toString().split(' ').first ?? 'User';
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -322,32 +387,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            //  KULINER 
+            // KULINER
             _buildSectionHeader(
-              title: 'Rekomendasi Kuliner di Sekitar mu',
-              onSeeAll: () {},
+              title: 'Rekomendasi Kuliner di Sekitarmu',
             ),
 
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(20, 0, 6, 0),
-                physics: const BouncingScrollPhysics(),
-                itemCount: _kulinerList.length,
-                itemBuilder: (_, i) {
-                  final k = _kulinerList[i];
-                  return KulinerCard(
-                    kuliner: k,
-                    distance: _distanceTo(
-                      (k['latitude'] as num?)?.toDouble(),
-                      (k['longitude'] as num?)?.toDouble(),
+            _kulinerList.isEmpty
+                ? _buildEmptyState('Tidak ada kuliner dalam radius 10 km')
+                : SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(20, 0, 6, 0),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _kulinerList.length,
+                      itemBuilder: (_, i) {
+                        final k = _kulinerList[i];
+                        return KulinerCard(
+                          kuliner: k,
+                          distance: _distanceTo(
+                            (k['latitude'] as num?)?.toDouble(),
+                            (k['longitude'] as num?)?.toDouble(),
+                          ),
+                          onTap: () => _onKulinerTap(k),
+                        );
+                      },
                     ),
-                    onTap: () => _onKulinerTap(k),
-                  );
-                },
-              ),
-            ),
+                  ),
 
             const SizedBox(height: 10),
 
@@ -357,18 +423,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Align(
                 alignment: Alignment.center,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const JelajahKulinerScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const JelajahKulinerScreen(),
+                    ),
+                  ),
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xFFF7924A),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 8),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
                   ),
@@ -388,30 +452,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // RUANG TERBUKA
             _buildSectionHeader(
-              title: 'Rekomendasi Ruang Terbuka di Sekitar mu',
-              onSeeAll: () {},
+              title: 'Rekomendasi Ruang Terbuka di Sekitarmu',
             ),
 
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.fromLTRB(20, 0, 6, 0),
-                physics: const BouncingScrollPhysics(),
-                itemCount: _ruangList.length,
-                itemBuilder: (_, i) {
-                  final r = _ruangList[i];
-                  return RuangCard(
-                    ruang: r,
-                    distance: _distanceTo(
-                      (r['latitude'] as num?)?.toDouble(),
-                      (r['longitude'] as num?)?.toDouble(),
+            _ruangList.isEmpty
+                ? _buildEmptyState('Tidak ada ruang terbuka dalam radius 10 km')
+                : SizedBox(
+                    height: 200,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(20, 0, 6, 0),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: _ruangList.length,
+                      itemBuilder: (_, i) {
+                        final r = _ruangList[i];
+                        return RuangCard(
+                          ruang: r,
+                          distance: _distanceTo(
+                            (r['latitude'] as num?)?.toDouble(),
+                            (r['longitude'] as num?)?.toDouble(),
+                          ),
+                          onTap: () => _onRuangTap(r),
+                        );
+                      },
                     ),
-                    onTap: () => _onRuangTap(r),
-                  );
-                },
-              ),
-            ),
+                  ),
 
             const SizedBox(height: 10),
 
@@ -421,19 +486,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Align(
                 alignment: Alignment.center,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const JelajahRuangScreen(),
-                      ),
-                    );
-                  },
-                  
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const JelajahRuangScreen(),
+                    ),
+                  ),
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xFFF7924A),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 8),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
                   ),
@@ -456,25 +518,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader({
-    required String title,
-    required VoidCallback onSeeAll,
-  }) {
+  Widget _buildSectionHeader({required String title}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: Color(0xFF1A1A2E),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 15,
+          color: Color(0xFF1A1A2E),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3EC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFBD2B6)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.location_off_rounded,
+                color: Color(0xFFF7924A), size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF888888),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

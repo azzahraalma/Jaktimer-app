@@ -1,11 +1,13 @@
 import 'dart:math' show sqrt;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/starter_screen.dart';
 import 'screens/beranda.dart';
+import 'helper/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +57,12 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
   late final Animation<double> _textOrangeOut;
   late final Animation<double> _textWhiteIn;
 
+  // ── Audio ─────────────────────────────────
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  // Flag biar listener ga trigger play berkali-kali
+  bool _audioPlayed = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +72,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       duration: const Duration(milliseconds: 5500),
     );
 
-    // Frame 1
+    // Frame 1 — teks oren fade in
     _textOrangeIn = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -72,7 +80,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Frame 2
+    // Frame 2 — dot jatuh dari atas
     _dotY = Tween<double>(begin: -160, end: 0).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -86,7 +94,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Frame 3
+    // Frame 3 — circle expand
     _circleRadius = Tween<double>(begin: 14, end: 110).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -94,7 +102,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
-    // Frame 4
+    // Frame 4 — swap teks oren → putih
     _textOrangeOut = Tween<double>(begin: 1, end: 0).animate(
       CurvedAnimation(
         parent: _ctrl,
@@ -108,7 +116,25 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       ),
     );
 
+    // ── Listener: play audio tepat saat circle full nutup layar (t >= 0.84)
+    _ctrl.addListener(_onAnimationTick);
+
     _run();
+  }
+
+  void _onAnimationTick() {
+    if (!_audioPlayed && _ctrl.value >= 0.84) {
+      _audioPlayed = true;
+      _playSound();
+    }
+  }
+
+  Future<void> _playSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('sound/splash.mp3'));
+    } catch (e) {
+      debugPrint('Audio error: $e');
+    }
   }
 
   Future<void> _run() async {
@@ -117,18 +143,43 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _navigateNext();
+    await _navigateNext();
+  }
+
+  // ── Validasi sesi ─────────────────────────
+  // Cek userId di SharedPreferences masih ada di DB.
+  // Kalau DB ke-reset (onUpgrade), prefs di-clear → balik ke StarterScreen.
+  Future<bool> _isSessionValid(int userId) async {
+    try {
+      final user = await DatabaseHelper().getUserById(userId);
+      return user != null;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _navigateNext() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('userId');
+
+    bool isLoggedIn = false;
+
+    if (userId != null) {
+      final valid = await _isSessionValid(userId);
+      if (valid) {
+        isLoggedIn = true;
+      } else {
+        await prefs.clear();
+      }
+    }
+
     if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) =>
-            userId != null ? const HomeScreen() : const StarterScreen(),
+            isLoggedIn ? const HomeScreen() : const StarterScreen(),
         transitionDuration: const Duration(milliseconds: 400),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -138,7 +189,9 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
 
   @override
   void dispose() {
+    _ctrl.removeListener(_onAnimationTick);
     _ctrl.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -225,7 +278,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                     ),
                   ),
 
-                // 3. Teks putih down
+                // 3. Teks putih
                 if (whiteOp > 0)
                   Opacity(
                     opacity: whiteOp.clamp(0.0, 1.0),
