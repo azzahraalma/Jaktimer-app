@@ -6,6 +6,230 @@ import 'login_screen.dart';
 import 'starter_screen.dart';
 import 'beranda.dart';
 
+// ─────────────────────────────────────────────
+//  TERMS DIALOG WIDGET
+// ─────────────────────────────────────────────
+
+class TermsDialog extends StatelessWidget {
+  const TermsDialog({super.key});
+
+  static const _orange = Color(0xFFFF8C00);
+
+  static const _sections = [
+    _TermSection(
+      title: '1. Penerimaan Syarat',
+      content:
+          'Dengan mendaftar dan menggunakan aplikasi ini, kamu menyetujui '
+          'seluruh syarat dan ketentuan yang berlaku. Harap baca dengan '
+          'seksama sebelum melanjutkan pendaftaran.',
+    ),
+    _TermSection(
+      title: '2. Penggunaan Akun',
+      content:
+          'Kamu bertanggung jawab penuh atas keamanan akun dan seluruh '
+          'aktivitas yang terjadi di dalamnya. Jangan berbagi informasi '
+          'login kepada siapa pun demi keamanan bersama.',
+    ),
+    _TermSection(
+      title: '3. Privasi & Data',
+      content:
+          'Data pribadi kamu kami simpan dengan aman menggunakan enkripsi '
+          'standar industri dan tidak akan dibagikan kepada pihak ketiga '
+          'tanpa persetujuanmu, kecuali diwajibkan oleh hukum yang berlaku.',
+    ),
+    _TermSection(
+      title: '4. Konten Pengguna',
+      content:
+          'Kamu setuju untuk tidak mengunggah konten yang melanggar hukum, '
+          'bersifat ofensif, mengandung ujaran kebencian, atau melanggar '
+          'hak kekayaan intelektual pihak lain.',
+    ),
+    _TermSection(
+      title: '5. Perubahan Layanan',
+      content:
+          'Kami berhak mengubah, menangguhkan, atau menghentikan layanan '
+          'sewaktu-waktu. Perubahan signifikan akan diberitahukan melalui '
+          'notifikasi aplikasi atau email terdaftar.',
+    ),
+    _TermSection(
+      title: '6. Batasan Tanggung Jawab',
+      content:
+          'Aplikasi ini disediakan "sebagaimana adanya". Kami tidak '
+          'bertanggung jawab atas kerugian langsung maupun tidak langsung '
+          'yang timbul akibat penggunaan atau ketidakmampuan menggunakan '
+          'layanan ini.',
+    ),
+    _TermSection(
+      title: '7. Hukum yang Berlaku',
+      content:
+          'Syarat dan ketentuan ini diatur oleh hukum Republik Indonesia. '
+          'Segala sengketa akan diselesaikan melalui jalur musyawarah atau '
+          'pengadilan yang berwenang.',
+    ),
+  ];
+
+  /// Cara pakai: TermsDialog.show(context)
+  static void show(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (_) => const TermsDialog(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ──────────────────────────
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Syarat & Ketentuan',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: _orange,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: Color(0xFF888888),
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 4),
+            const Text(
+              'Terakhir diperbarui: 1 Januari 2025',
+              style: TextStyle(fontSize: 11, color: Color(0xFFAAAAAA)),
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 4),
+
+            // ── Scrollable Content ───────────────
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.45,
+              ),
+              child: Scrollbar(
+                thumbVisibility: true,
+                radius: const Radius.circular(4),
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                  shrinkWrap: true,
+                  itemCount: _sections.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                  itemBuilder: (_, i) => _SectionTile(section: _sections[i]),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 4),
+            const Divider(height: 1, color: Color(0xFFEEEEEE)),
+            const SizedBox(height: 16),
+
+            // ── CTA Button ───────────────────────
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _orange,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Saya Mengerti',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE HELPER MODELS & WIDGETS
+// ─────────────────────────────────────────────
+
+class _TermSection {
+  final String title;
+  final String content;
+  const _TermSection({required this.title, required this.content});
+}
+
+class _SectionTile extends StatelessWidget {
+  final _TermSection section;
+  const _SectionTile({required this.section});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          section.title,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF222222),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          section.content,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF555555),
+            height: 1.55,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  REGISTER SCREEN
+// ─────────────────────────────────────────────
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -39,15 +263,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email    = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty)                    return _showSnack('Username tidak boleh kosong');
+    if (username.isEmpty)                     return _showSnack('Username tidak boleh kosong');
     if (email.isEmpty || !email.contains('@')) return _showSnack('Email tidak valid');
-    if (password.length < 8)                 return _showSnack('Password minimal 8 karakter');
-    if (!_agreedToTerms)                     return _showSnack('Harap setujui Syarat dan Keamanan');
+    if (password.length < 8)                  return _showSnack('Password minimal 8 karakter');
+    if (!_agreedToTerms)                      return _showSnack('Harap setujui Syarat dan Keamanan');
 
     setState(() => _isLoading = true);
 
     try {
-      final db    = DatabaseHelper();
+      final db = DatabaseHelper();
 
       final newId = await db.registerUser({
         'username'          : username,
@@ -96,6 +320,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+
+  // ── Build ──────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +383,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // ── Header ────────────────────────────────
 
   Widget _buildHeader(String title) {
     return Padding(
@@ -184,6 +411,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // ── Mascot ────────────────────────────────
+
   Widget _buildMascot() {
     return Center(
       child: SizedBox(
@@ -192,13 +421,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.asset(
-            'assets/images/mascot/timo_7.png', // path ke file lokal
+            'assets/images/mascot/timo_7.png',
             fit: BoxFit.contain,
           ),
         ),
       ),
     );
   }
+
+  // ── Form Fields ───────────────────────────
 
   Widget _buildLabel(String text) {
     return Padding(
@@ -276,6 +507,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // ── Checkbox + Terms ──────────────────────
+
   Widget _buildCheckbox() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -287,8 +520,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             value: _agreedToTerms,
             onChanged: (v) => setState(() => _agreedToTerms = v ?? false),
             activeColor: _orange,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
             side: const BorderSide(color: Color(0xFFBDBDBD), width: 1.5),
           ),
         ),
@@ -302,15 +536,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextSpan(
                   text: 'Syarat',
                   style: const TextStyle(
-                      color: _orange, fontWeight: FontWeight.w700),
-                  recognizer: TapGestureRecognizer()..onTap = () {},
+                    color: _orange,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => TermsDialog.show(context),
                 ),
                 const TextSpan(text: ' dan '),
                 TextSpan(
-                  text: 'Keamanan',
+                  text: 'Ketentuan',
                   style: const TextStyle(
-                      color: _orange, fontWeight: FontWeight.w700),
-                  recognizer: TapGestureRecognizer()..onTap = () {},
+                    color: _orange,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => TermsDialog.show(context),
                 ),
               ],
             ),
@@ -319,6 +559,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ],
     );
   }
+
+  // ── Submit Button ─────────────────────────
 
   Widget _buildSubmitButton({
     required String label,
@@ -332,8 +574,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: _orange,
           disabledBackgroundColor: _orange.withOpacity(0.6),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           elevation: 0,
         ),
         child: _isLoading
@@ -341,7 +584,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
               )
             : Text(
                 label,
@@ -355,6 +600,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+
+  // ── Alt Link ──────────────────────────────
 
   Widget _buildAltLink({
     required String prefix,
@@ -370,7 +617,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             TextSpan(
               text: linkText,
               style: const TextStyle(
-                  color: _orange, fontWeight: FontWeight.w700),
+                color: _orange,
+                fontWeight: FontWeight.w700,
+              ),
               recognizer: TapGestureRecognizer()..onTap = onTap,
             ),
           ],

@@ -387,54 +387,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getArtikelById(int id) async =>
       getArtikelByIdJson(id);
 
-  // KUIS ARTIKEL
-
-  Future<bool> hasKuisCompleted(int userId, int artikelId) async {
-    final db = await database;
-    final res = await db.query(
-      'kuis_log',
-      where: 'user_id = ? AND artikel_id = ?',
-      whereArgs: [userId, artikelId],
-    );
-    return res.isNotEmpty;
-  }
-
-  Future<void> saveKuisResult({
-    required int userId,
-    required int artikelId,
-    required int jawabanIndex,
-    required bool isBenar,
-    required int xpEarned,
-  }) async {
-    final db = await database;
-    await db.insert(
-      'kuis_log',
-      {
-        'user_id': userId,
-        'artikel_id': artikelId,
-        'jawaban_index': jawabanIndex,
-        'is_benar': isBenar ? 1 : 0,
-        'xp_earned': xpEarned,
-      },
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
-    if (isBenar) {
-      await updateUserXp(userId, xpEarned);
-      await logXp(userId, xpEarned, 'Kuis Artikel #$artikelId');
-    }
-  }
-
-  Future<List<int>> getCompletedKuisArtikelIds(int userId) async {
-    final db = await database;
-    final res = await db.query(
-      'kuis_log',
-      columns: ['artikel_id'],
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
-    return res.map((r) => r['artikel_id'] as int).toList();
-  }
-
   // KUIS HARIAN
 
   Map<String, dynamic> getKuisHarianUntukUser(int userId) {
