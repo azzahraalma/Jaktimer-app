@@ -8,7 +8,6 @@ import '../data/kuis_harian.dart';
 import '../data/dummy_kuliner.dart';
 import '../data/dummy_ruang_terbuka.dart';
 import '../data/ulasan_kuliner.dart';
-import '../data/ulasan_ruang.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -27,16 +26,15 @@ class DatabaseHelper {
     final path = join(dbPath, 'jaktimer.db');
     return await openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: _createTables,
       onUpgrade: _onUpgrade,
     );
   }
 
-  // MIGRATION
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 12) {
+    if (oldVersion < 13) {
       await db.execute('DROP TABLE IF EXISTS users');
       await db.execute('DROP TABLE IF EXISTS kuliner');
       await db.execute('DROP TABLE IF EXISTS ruang_terbuka');
@@ -54,7 +52,6 @@ class DatabaseHelper {
     }
   }
 
-  // CREATE TABLES
 
   Future<void> _createTables(Database db, int version) async {
     await db.execute('''
@@ -125,13 +122,14 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE ulasan_ruang (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
         ruang_id INTEGER,
-        tempat_nama TEXT,
-        nama_user TEXT,
+        rating INTEGER,
         komentar TEXT,
-        rating REAL,
-        tanggal TEXT,
-        FOREIGN KEY (ruang_id) REFERENCES ruang_terbuka(id)
+        username TEXT,
+        avatar_url TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ruang_id) REFERENCES ruang_terbuka(id) ON DELETE CASCADE
       )
     ''');
 
@@ -248,8 +246,6 @@ class DatabaseHelper {
     await _insertDummyData(db);
   }
 
-  // SEED DATA
-
   Future<void> _seedKuisFromJson(Database db) async {
     for (final a in artikelData) {
       final kuis = a['kuis'] as Map<String, dynamic>?;
@@ -296,18 +292,12 @@ class DatabaseHelper {
       await db.insert('ruang_terbuka', r);
     }
 
-    for (final u in DummyUlasanKuliner) {
+    for (final u in dummyUlasanKuliner) {
       await db.insert('ulasan', u);
     }
-
-    for (final u in dummyUlasanRuangData) {
-      await db.insert('ulasan_ruang', u);
-    }
-
     await _seedKuisFromJson(db);
   }
 
-  // HELPER
 
   static String _formatDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -322,31 +312,21 @@ class DatabaseHelper {
 
   static String _levelNameFromLevel(int level) {
     switch (level) {
-      case 5:
-        return 'Penakluk';
-      case 4:
-        return 'Penjelajah Sejati';
-      case 3:
-        return 'Penjelajah';
-      case 2:
-        return 'Explorer Sejati';
-      default:
-        return 'Explorer Muda';
+      case 5: return 'Penakluk';
+      case 4: return 'Penjelajah Sejati';
+      case 3: return 'Penjelajah';
+      case 2: return 'Explorer Sejati';
+      default: return 'Explorer Muda';
     }
   }
 
   static String getMascotAsset(int level) {
     switch (level) {
-      case 5:
-        return 'assets/images/mascot/timo_4.png';
-      case 4:
-        return 'assets/images/mascot/timo_3.png';
-      case 3:
-        return 'assets/images/mascot/timo_2.png';
-      case 2:
-        return 'assets/images/mascot/timo_5.png';
-      default:
-        return 'assets/images/mascot/timo_6.png';
+      case 5: return 'assets/images/mascot/timo_4.png';
+      case 4: return 'assets/images/mascot/timo_3.png';
+      case 3: return 'assets/images/mascot/timo_2.png';
+      case 2: return 'assets/images/mascot/timo_5.png';
+      default: return 'assets/images/mascot/timo_6.png';
     }
   }
 
@@ -359,8 +339,6 @@ class DatabaseHelper {
     }
     return const AssetImage(defaultAvatarAsset);
   }
-
-  // ARTIKEL
 
   List<Map<String, dynamic>> getAllArtikel() => List.from(artikelData);
 
@@ -387,7 +365,6 @@ class DatabaseHelper {
   Future<Map<String, dynamic>?> getArtikelById(int id) async =>
       getArtikelByIdJson(id);
 
-  // KUIS HARIAN
 
   Map<String, dynamic> getKuisHarianUntukUser(int userId) {
     final now = DateTime.now();
@@ -505,7 +482,6 @@ class DatabaseHelper {
     return streak;
   }
 
-  // KULINER
 
   Future<List<Map<String, dynamic>>> getKuliner({
     String? search,
@@ -549,7 +525,6 @@ class DatabaseHelper {
     return await db.insert('kuliner', kuliner);
   }
 
-  // RUANG TERBUKA
 
   Future<List<Map<String, dynamic>>> getRuangTerbuka({
     String? search,
@@ -583,8 +558,6 @@ class DatabaseHelper {
     return await db.insert('ruang_terbuka', ruang);
   }
 
-  // ULASAN
-
   Future<List<Map<String, dynamic>>> getUlasan(
       int tempatId, String tipe) async {
     final db = await database;
@@ -603,7 +576,16 @@ class DatabaseHelper {
 
   Future<int> insertUlasanRuang(Map<String, dynamic> data) async {
     final db = await database;
-    return await db.insert('ulasan_ruang', data);
+    final Map<String, dynamic> insertData = {
+      'user_id': data['user_id'],
+      'ruang_id': data['tempat_id'], 
+      'rating': data['rating'],
+      'komentar': data['komentar'],
+      'username': data['username'],
+      'avatar_url': data['avatar_url'],
+      'created_at': DateTime.now().toIso8601String(),
+    };
+    return await db.insert('ulasan_ruang', insertData);
   }
 
   Future<List<Map<String, dynamic>>> getUlasanByRuangId(int ruangId) async {
@@ -612,11 +594,9 @@ class DatabaseHelper {
       'ulasan_ruang',
       where: 'ruang_id = ?',
       whereArgs: [ruangId],
-      orderBy: 'id DESC',
+      orderBy: 'created_at DESC',
     );
   }
-
-  // USER
 
   Future<Map<String, dynamic>?> getUserById(int id) async {
     final db = await database;
@@ -713,7 +693,6 @@ class DatabaseHelper {
     return true;
   }
 
-  /// Simpan path foto lokal (dari kamera / galeri) ke kolom image_path
   Future<void> updateUserImagePath(int userId, String imagePath) async {
     final db = await database;
     await db.update(
@@ -756,8 +735,6 @@ class DatabaseHelper {
     final db = await database;
     await db.update('users', data, where: 'id = ?', whereArgs: [userId]);
   }
-
-  // DAILY CHECKIN
 
   Future<bool> dailyCheckin(int userId) async {
     final db = await database;
@@ -943,8 +920,6 @@ class DatabaseHelper {
     return anyRow.isNotEmpty;
   }
 
-  // BADGES
-
   Future<List<Map<String, dynamic>>> getUserBadges(int userId) async {
     final db = await database;
     return await db.query('badges', where: 'user_id = ?', whereArgs: [userId]);
@@ -967,8 +942,6 @@ class DatabaseHelper {
       });
     }
   }
-
-  // SEARCH
 
   Future<List<Map<String, dynamic>>> searchAll(String query) async {
     final db = await database;
@@ -993,8 +966,6 @@ class DatabaseHelper {
         .toList();
     return [...kuliner, ...ruang, ...artikelHits];
   }
-
-  // MISI
 
   Future<bool> completeMisi(int userId, String misiKode) async {
     final db = await database;
@@ -1034,6 +1005,40 @@ class DatabaseHelper {
     return res.map((r) => r['misi_kode'] as String).toList();
   }
 
+    Future<bool> isMisiInToday(String misiKode) async {
+    final List<String> availableMissions = [
+      'tambah_review_kuliner',
+      'tambah_review_ruang', 
+      'tambah_kuliner',
+      'tambah_ruang',
+      'daily_checkin',
+      'kuis_harian',
+    ];
+    return availableMissions.contains(misiKode);
+  }
+
+   Future<int> completeMisiIfExists(int userId, String misiKode, int xpReward) async {
+    final db = await database;
+    final tanggal = _formatDate(DateTime.now());
+    
+    final isInMisi = await isMisiInToday(misiKode);
+    if (!isInMisi) return 0;
+    
+    final alreadyCompleted = await isMisiCompleted(userId, misiKode);
+    if (alreadyCompleted) return 0;
+    
+    await db.insert(
+      'misi_log',
+      {'user_id': userId, 'misi_kode': misiKode, 'tanggal': tanggal},
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+    
+    await updateUserXp(userId, xpReward);
+    await logXp(userId, xpReward, 'Misi Harian: $misiKode ✅');
+    
+    return xpReward;
+  }
+
   Future<int> getTotalMisiXpHariIni(int userId) async {
     final db = await database;
     final tanggal = _formatDate(DateTime.now());
@@ -1043,8 +1048,6 @@ class DatabaseHelper {
     );
     return (res.first['total'] as int?) ?? 0;
   }
-
-  // XP LOG
 
   Future<void> logXp(int userId, int xp, String keterangan) async {
     final db = await database;
@@ -1072,8 +1075,6 @@ class DatabaseHelper {
       limit: 20,
     );
   }
-
-  // STATISTIK USER
 
   Future<int> getTotalTempat(int userId) async {
     final db = await database;
@@ -1108,8 +1109,6 @@ class DatabaseHelper {
         [userId]);
     return (r1.first['c'] as int) + (r2.first['c'] as int);
   }
-
-  // LEGACY
 
   Future<Map<String, dynamic>?> getKuisHariIni() async =>
       getKuisHarianUntukUser(1);

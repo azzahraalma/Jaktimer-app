@@ -1,14 +1,12 @@
-// lib/screens/profile_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../helper/database_helper.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final int userId;
-
-  const ProfileScreen({super.key, required this.userId});
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -16,8 +14,9 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with WidgetsBindingObserver {
-  final DatabaseHelper _db = DatabaseHelper();
   final ImagePicker _picker = ImagePicker();
+
+  String get _uid => AuthService.currentUid ?? '';
 
   Map<String, dynamic>? _user;
   List<Map<String, dynamic>> _badges = [];
@@ -26,41 +25,10 @@ class _ProfileScreenState extends State<ProfileScreen>
   int _totalArtikel = 0;
   bool _isLoading = true;
 
-  //  Level & XP thresholds 
   static const List<int> _xpThresholds = [0, 1000, 2000, 3000, 5000, 99999];
 
-  static int _levelFromXp(int xp) {
-    if (xp >= 5000) return 5;
-    if (xp >= 3000) return 4;
-    if (xp >= 2000) return 3;
-    if (xp >= 1000) return 2;
-    return 1;
-  }
-
-  static String _levelNameFromLevel(int level) {
-    switch (level) {
-      case 5:
-        return 'Penakluk';
-      case 4:
-        return 'Penjelajah Sejati';
-      case 3:
-        return 'Penjelajah';
-      case 2:
-        return 'Explorer Sejati';
-      default:
-        return 'Explorer Muda';
-    }
-  }
-
-  static const List<String> _securityQuestions = [
-    'Nama hewan peliharaan pertamamu?',
-    'Nama sekolah dasar tempat kamu belajar?',
-    'Kota kelahiranmu?',
-    'Nama tengah ibumu?',
-    'Nama julukan masa kecilmu?',
-  ];
-
-  // LIFECYCLE
+  static int _levelFromXp(int xp) => FirestoreService.levelFromXp(xp);
+  static String _levelNameFromLevel(int level) => FirestoreService.levelNameFromLevel(level);
 
   @override
   void initState() {
@@ -77,32 +45,44 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _load();
-    }
+    if (state == AppLifecycleState.resumed) _load();
   }
 
-  // LOAD DATA
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _load();
+  }
 
   Future<void> _load() async {
+    if (_uid.isEmpty) return;
     setState(() => _isLoading = true);
-    final user = await _db.getUserById(widget.userId);
-    final badges = await _db.getUserBadges(widget.userId);
-    final totalTempat = await _db.getTotalTempat(widget.userId);
-    final totalUlasan = await _db.getTotalUlasan(widget.userId);
-    final totalArtikel = await _db.getTotalArtikelDibaca(widget.userId);
+
+    final results = await Future.wait([
+      FirestoreService.getUser(_uid),
+      FirestoreService.getUserBadges(_uid),
+      FirestoreService.getTotalTempat(_uid),
+      FirestoreService.getTotalUlasan(_uid),
+      FirestoreService.getTotalArtikelDibaca(_uid),
+    ]);
+
+    final user = results[0] as Map<String, dynamic>?;
+    final badges = results[1] as List<Map<String, dynamic>>;
+    final totalTempat = results[2] as int;
+    final totalUlasan = results[3] as int;
+    final totalArtikel = results[4] as int;
 
     if (user != null) {
-      final xp = user['xp'] as int? ?? 0;
+      final xp = (user['xp'] as num? ?? 0).toInt();
       final correctLevel = _levelFromXp(xp);
-      final correctLevelName = _levelNameFromLevel(correctLevel);
-      final storedLevel = user['level'] as int? ?? 1;
+      final storedLevel = (user['level'] as num? ?? 1).toInt();
+      
       if (storedLevel != correctLevel) {
-        await _db.updateUserProfile(widget.userId, {
+        await FirestoreService.updateUser(_uid, {
           'level': correctLevel,
-          'level_name': correctLevelName,
+          'level_name': _levelNameFromLevel(correctLevel),
         });
-        final correctedUser = await _db.getUserById(widget.userId);
+        final correctedUser = await FirestoreService.getUser(_uid);
         setState(() {
           _user = correctedUser;
           _badges = badges;
@@ -125,8 +105,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     });
   }
 
-  // XP HELPERS
-
   double _calcProgress(int xp, int level) {
     final idx = (level - 1).clamp(0, _xpThresholds.length - 2);
     final xpPrev = _xpThresholds[idx];
@@ -148,8 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildAvatarWidget() {
     final imagePath = _user?['image_path'] as String?;
-
-    // Punya foto custom dari galeri/kamera
     if (imagePath != null && imagePath.isNotEmpty) {
       return Image.file(
         File(imagePath),
@@ -157,20 +133,15 @@ class _ProfileScreenState extends State<ProfileScreen>
         errorBuilder: (_, __, ___) => _buildDefaultAvatarImage(),
       );
     }
-
-    // Default: selalu timo_9.png
     return _buildDefaultAvatarImage();
   }
 
-  /// Widget default → AssetImage timo_9.png
   Widget _buildDefaultAvatarImage() {
     return Image.asset(
-      DatabaseHelper.defaultAvatarAsset,
+      'assets/images/mascot/timo_9.jpg',
       fit: BoxFit.cover,
     );
   }
-
-  // GANTI FOTO PROFIL
 
   Future<void> _showPhotoOptions() async {
     final hasCustomPhoto = _user?['image_path'] != null &&
@@ -258,15 +229,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: const Icon(Icons.delete_outline_rounded,
                         color: Color(0xFFFF4444)),
                   ),
-                  title: const Text(
-                    'Hapus Foto',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, color: Color(0xFFFF4444)),
-                  ),
-                  subtitle: const Text(
-                    'Kembali ke avatar default Timo',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
-                  ),
+                  title: const Text('Hapus Foto',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFFF4444))),
+                  subtitle: const Text('Kembali ke avatar default Timo',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
                   onTap: () {
                     Navigator.pop(ctx);
                     _removePhoto();
@@ -289,57 +257,42 @@ class _ProfileScreenState extends State<ProfileScreen>
         imageQuality: 85,
       );
       if (picked == null) return;
-      await _db.updateUserImagePath(widget.userId, picked.path);
+      await FirestoreService.updateImagePath(_uid, picked.path);
       await _load();
       if (mounted) _showSnackBar('Foto profil berhasil diperbarui! 📸');
     } catch (e) {
-      if (mounted) {
-        _showSnackBar('Gagal memilih foto. Coba lagi.', isError: true);
-      }
+      if (mounted) _showSnackBar('Gagal memilih foto. Coba lagi.', isError: true);
     }
   }
 
   Future<void> _removePhoto() async {
-    await _db.removeUserImagePath(widget.userId);
+    await FirestoreService.updateImagePath(_uid, null);
     await _load();
     if (mounted) _showSnackBar('Foto profil dihapus. Kembali ke Timo! 🐱');
   }
 
-  // EDIT USERNAME & EMAIL
-
   void _showEditProfileDialog() {
-    final usernameCtrl =
-        TextEditingController(text: _user?['username'] as String? ?? '');
-    final emailCtrl =
-        TextEditingController(text: _user?['email'] as String? ?? '');
+    final usernameCtrl = TextEditingController(text: _user?['username'] as String? ?? '');
+    final emailCtrl = TextEditingController(text: _user?['email'] as String? ?? '');
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Edit Profil',
-          style: TextStyle(
-              fontWeight: FontWeight.w800, color: Color(0xFFF7924A)),
-        ),
+        title: const Text('Edit Profil',
+            style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFF7924A))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Username',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 74, 74, 74))),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4A4A4A))),
             const SizedBox(height: 6),
             _buildDialogTextField(usernameCtrl, 'Masukkan username'),
             const SizedBox(height: 14),
             const Text('Email',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 74, 74, 74))),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4A4A4A))),
             const SizedBox(height: 6),
             _buildDialogTextField(emailCtrl, 'Masukkan email',
                 keyboardType: TextInputType.emailAddress),
@@ -350,8 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.grey),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text('Batal', style: TextStyle(color: Colors.grey)),
           ),
@@ -360,8 +312,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               final newUsername = usernameCtrl.text.trim();
               final newEmail = emailCtrl.text.trim();
               if (newUsername.isEmpty || newEmail.isEmpty) {
-                _showSnackBar('Username dan email tidak boleh kosong.',
-                    isError: true);
+                _showSnackBar('Username dan email tidak boleh kosong.', isError: true);
                 return;
               }
               if (!newEmail.contains('@')) {
@@ -369,27 +320,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                 return;
               }
               try {
-                await _db.updateUsernameEmail(
-                    widget.userId, newUsername, newEmail);
+                await FirestoreService.updateUsernameEmail(_uid, newUsername, newEmail);
+                final currentEmail = AuthService.currentUser?.email ?? '';
+                if (newEmail != currentEmail) {
+                  await AuthService.updateEmail(newEmail);
+                }
                 if (ctx.mounted) Navigator.pop(ctx);
                 await _load();
                 if (mounted) _showSnackBar('Profil berhasil diperbarui! ✅');
               } catch (e) {
                 if (mounted) {
-                  _showSnackBar(
-                    e.toString().replaceFirst('Exception: ', ''),
-                    isError: true,
-                  );
+                  _showSnackBar(e.toString().replaceFirst('Exception: ', ''), isError: true);
                 }
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFF7924A),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child:
-                const Text('Simpan', style: TextStyle(color: Colors.white)),
+            child: const Text('Simpan', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -404,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
-        fillColor: const Color.fromARGB(255, 255, 241, 231),
+        fillColor: const Color(0xFFFFF1E7),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFF7924A)),
@@ -413,13 +362,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFF7924A), width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
-
-  // UBAH KATA SANDI
 
   void _showChangePasswordDialog() {
     final oldCtrl = TextEditingController();
@@ -436,30 +382,23 @@ class _ProfileScreenState extends State<ProfileScreen>
         return StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
             backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)),
-            title: const Text(
-              'Ubah Kata Sandi',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800, color: Color(0xFFF7924A)),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Ubah Kata Sandi',
+                style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFF7924A))),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildField(oldCtrl, 'Kata sandi lama',
                     obscure: obscureOld,
-                    onToggle: () =>
-                        setDialogState(() => obscureOld = !obscureOld)),
+                    onToggle: () => setDialogState(() => obscureOld = !obscureOld)),
                 const SizedBox(height: 10),
                 _buildField(newCtrl, 'Kata sandi baru',
                     obscure: obscureNew,
-                    onToggle: () =>
-                        setDialogState(() => obscureNew = !obscureNew)),
+                    onToggle: () => setDialogState(() => obscureNew = !obscureNew)),
                 const SizedBox(height: 10),
                 _buildField(confirmCtrl, 'Konfirmasi kata sandi baru',
                     obscure: obscureConfirm,
-                    onToggle: () => setDialogState(
-                        () => obscureConfirm = !obscureConfirm)),
+                    onToggle: () => setDialogState(() => obscureConfirm = !obscureConfirm)),
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
@@ -468,14 +407,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                       Navigator.pop(ctx);
                       _showForgotPasswordDialog();
                     },
-                    child: const Text(
-                      'Lupa kata sandi?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFFF7924A),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: const Text('Lupa kata sandi?',
+                        style: TextStyle(fontSize: 13, color: Color(0xFFF7924A), fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -485,26 +418,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                 onPressed: () => Navigator.pop(ctx),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.grey),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Batal',
-                    style: TextStyle(color: Colors.grey)),
+                child: const Text('Batal', style: TextStyle(color: Colors.grey)),
               ),
               ElevatedButton(
                 onPressed: () async {
                   if (newCtrl.text != confirmCtrl.text) {
-                    _showSnackBar('Konfirmasi kata sandi tidak cocok!',
-                        isError: true);
+                    _showSnackBar('Konfirmasi kata sandi tidak cocok!', isError: true);
                     return;
                   }
                   if (newCtrl.text.length < 6) {
-                    _showSnackBar('Kata sandi baru minimal 6 karakter.',
-                        isError: true);
+                    _showSnackBar('Kata sandi baru minimal 6 karakter.', isError: true);
                     return;
                   }
-                  final ok = await _db.updatePassword(
-                      widget.userId, oldCtrl.text, newCtrl.text);
+                  final ok = await AuthService.changePassword(
+                    oldPassword: oldCtrl.text,
+                    newPassword: newCtrl.text,
+                  );
                   if (!ok) {
                     _showSnackBar('Kata sandi lama salah!', isError: true);
                     return;
@@ -514,11 +445,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF7924A),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Simpan',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text('Simpan', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -541,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
-        fillColor: const Color.fromARGB(255, 255, 241, 231),
+        fillColor: const Color(0xFFFFF1E7),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFF7924A)),
@@ -550,15 +479,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFF7924A), width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         suffixIcon: onToggle != null
             ? IconButton(
-                icon: Icon(
-                  obscure ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFFF7924A),
-                  size: 18,
-                ),
+                icon: Icon(obscure ? Icons.visibility_off : Icons.visibility,
+                    color: const Color(0xFFF7924A), size: 18),
                 onPressed: onToggle,
               )
             : null,
@@ -566,25 +491,86 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // LUPA KATA SANDI
-
   void _showForgotPasswordDialog() {
-    final emailCtrl =
-        TextEditingController(text: _user?['email'] as String? ?? '');
+    final emailCtrl = TextEditingController(text: _user?['email'] as String? ?? '');
+    bool isSending = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => _ForgotPasswordDialog(
-        db: _db,
-        initialEmail: emailCtrl.text,
-        securityQuestions: _securityQuestions,
-        onSuccess: () {
-          if (mounted) _showSnackBar('Kata sandi berhasil direset! 🎉');
-        },
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Reset Kata Sandi',
+              style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFF7924A))),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Kami akan mengirim link reset kata sandi ke email kamu.',
+                style: TextStyle(fontSize: 13, color: Color(0xFF777777)),
+              ),
+              const SizedBox(height: 14),
+              const Text('Email',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF999999))),
+              const SizedBox(height: 6),
+              _buildField(emailCtrl, 'Masukkan email',
+                  keyboardType: TextInputType.emailAddress),
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: isSending ? null : () => Navigator.pop(ctx),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.grey),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: isSending
+                  ? null
+                  : () async {
+                      final email = emailCtrl.text.trim();
+                      if (email.isEmpty || !email.contains('@')) {
+                        _showSnackBar('Masukkan email yang valid.', isError: true);
+                        return;
+                      }
+                      setDialogState(() => isSending = true);
+                      try {
+                        await AuthService.sendPasswordResetEmail(email);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) {
+                          _showSnackBar('Link reset dikirim ke $email 📧');
+                        }
+                      } catch (e) {
+                        setDialogState(() => isSending = false);
+                        if (mounted) {
+                          _showSnackBar(
+                            'Gagal mengirim email. Periksa kembali alamat email.',
+                            isError: true,
+                          );
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFF7924A),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: isSending
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Kirim Link', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  // ALL BADGES SHEET
 
   void _showAllBadgesSheet() {
     showModalBottomSheet(
@@ -618,19 +604,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Semua Pencapaian',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A2E),
-                  ),
-                ),
+                const Text('Semua Pencapaian',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
                 const SizedBox(height: 4),
-                Text(
-                  '${_badges.length} badge diraih',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF777777)),
-                ),
+                Text('${_badges.length} badge diraih',
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF777777))),
                 const SizedBox(height: 16),
                 Expanded(
                   child: _badges.isEmpty
@@ -638,30 +616,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('🏅',
-                                  style: TextStyle(fontSize: 48)),
+                              const Text('🏅', style: TextStyle(fontSize: 48)),
                               const SizedBox(height: 12),
-                              Text(
-                                'Belum ada badge.\nSelesaikan misi untuk mendapatkannya!',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: Colors.grey[400], fontSize: 14),
-                              ),
+                              Text('Belum ada badge.\nSelesaikan misi untuk mendapatkannya!',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey[400], fontSize: 14)),
                             ],
                           ),
                         )
                       : GridView.builder(
                           controller: scrollCtrl,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 3,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                             childAspectRatio: 0.85,
                           ),
                           itemCount: _badges.length,
-                          itemBuilder: (_, i) =>
-                              _buildBadgeGridItem(_badges[i]),
+                          itemBuilder: (_, i) => _buildBadgeGridItem(_badges[i]),
                         ),
                 ),
               ],
@@ -672,94 +644,69 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // LOGOUT
-
   void _handleLogout() {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Keluar Akun',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
-        ),
-        content: Text(
-          'Yakin mau keluar dari akun ${_user?['username'] ?? 'ini'}?',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 15, color: Color(0xFF555555)),
-        ),
+        title: const Text('Keluar Akun',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+        content: Text('Yakin mau keluar dari akun ${_user?['username'] ?? 'ini'}?',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 15, color: Color(0xFF555555))),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text(
-              'Batal',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16),
-            ),
+            child: const Text('Batal',
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 16)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
+              await AuthService.logout();
+              if (mounted) {
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF4444),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text(
-              'Keluar',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900),
-            ),
+            child: const Text('Keluar',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
           ),
         ],
       ),
     );
   }
 
-  // SNACKBAR 
-
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor:
-            isError ? const Color(0xFFFF4444) : const Color(0xFFF7924A),
+        backgroundColor: isError ? const Color(0xFFFF4444) : const Color(0xFFF7924A),
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
-
-  // BUILD
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(
-            child: CircularProgressIndicator(color: Color(0xFFF7924A))),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFF7924A))),
       );
     }
 
-    final int xp = _user?['xp'] as int? ?? 0;
+    final int xp = (_user?['xp'] as num? ?? 0).toInt();
     final String username = _user?['username'] as String? ?? 'Timo';
     final String email = _user?['email'] as String? ?? '';
 
@@ -773,466 +720,349 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              //  HEADER 
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Profil',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFFF7924A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              //  AVATAR 
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: _showPhotoOptions,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: const Color(0xFFF7924A), width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFF7924A).withOpacity(0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: _buildAvatarWidget(),
-                      ),
-                    ),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        color: const Color(0xFFF7924A),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Profil',
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFFF7924A))),
+                    ],
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
+                ),
+                const SizedBox(height: 24),
+
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    GestureDetector(
                       onTap: _showPhotoOptions,
                       child: Container(
-                        width: 30,
-                        height: 30,
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF7924A),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(Icons.camera_alt_rounded,
-                            size: 14, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              //  USERNAME 
-              GestureDetector(
-                onTap: _showEditProfileDialog,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      username,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1A1A2E),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(Icons.edit_rounded,
-                        size: 16, color: Color(0xFFCCCCCC)),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              //  EMAIL 
-              GestureDetector(
-                onTap: _showEditProfileDialog,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3EC),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFFBD2B6)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        email,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF555555),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.edit_rounded,
-                          size: 13, color: Color(0xFFF7924A)),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              //  LEVEL CARD 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFF7924A)),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Level $level · $levelName',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: Color(0xFF1A1A2E),
-                            ),
-                          ),
-                          Text(
-                            '$xp XP',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              color: Color(0xFFF7924A),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        level < 5
-                            ? '$xp XP di level ini · kurang $xpKurang XP ke level berikutnya'
-                            : '$xp XP · Level Maksimum 🎉',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF9E9E9E),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0, end: progress),
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeOut,
-                        builder: (ctx, val, _) => Stack(
-                          children: [
-                            Container(
-                              height: 12,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEEEEEE),
-                                borderRadius: BorderRadius.circular(99),
-                              ),
-                            ),
-                            FractionallySizedBox(
-                              widthFactor: val,
-                              child: Container(
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF7924A),
-                                  borderRadius: BorderRadius.circular(99),
-                                ),
-                              ),
+                          border: Border.all(color: const Color(0xFFF7924A), width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFF7924A).withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 6),
                             ),
                           ],
                         ),
+                        child: ClipRRect(borderRadius: BorderRadius.circular(50), child: _buildAvatarWidget()),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '$xp / $xpNeeded XP',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFFF7924A),
-                            ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _showPhotoOptions,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF7924A),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                          Text(
-                            level < 5
-                                ? 'Menuju ${_levelNameFromLevel(level + 1)}'
-                                : 'Level Maksimum! 🎉',
-                            style: const TextStyle(
-                                fontSize: 12, color: Color(0xFF999999)),
-                          ),
-                        ],
+                          child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                GestureDetector(
+                  onTap: _showEditProfileDialog,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(username,
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A2E))),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.edit_rounded, size: 16, color: Color(0xFFCCCCCC)),
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 6),
 
-              const SizedBox(height: 24),
-
-              //  KEAMANAN AKUN 
-              _buildSectionHeader('Keamanan Akun'),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GestureDetector(
-                  onTap: _showChangePasswordDialog,
+                GestureDetector(
+                  onTap: _showEditProfileDialog,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color: const Color(0xFFEEEEEE), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: const Color(0xFFFFF3EC),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFFBD2B6)),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF3EC),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.lock_outline_rounded,
-                              size: 20, color: Color(0xFFF7924A)),
+                        Text(email,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF555555))),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.edit_rounded, size: 13, color: Color(0xFFF7924A)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: const Color(0xFFF7924A)),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Level $level · $levelName',
+                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFF1A1A2E))),
+                            Text('$xp XP',
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFFF7924A))),
+                          ],
                         ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 2),
+                        Text(
+                          level < 5
+                              ? '$xp XP di level ini · kurang $xpKurang XP ke level berikutnya'
+                              : '$xp XP · Level Maksimum 🎉',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF9E9E9E)),
+                        ),
+                        const SizedBox(height: 10),
+                        TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0, end: progress),
+                          duration: const Duration(milliseconds: 800),
+                          curve: Curves.easeOut,
+                          builder: (ctx, val, _) => Stack(
                             children: [
-                              Text(
-                                'Ubah Kata Sandi',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                  color: Color(0xFF1A1A2E),
-                                ),
+                              Container(
+                                height: 12,
+                                width: double.infinity,
+                                decoration: BoxDecoration(color: const Color(0xFFEEEEEE), borderRadius: BorderRadius.circular(99)),
                               ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Ubah atau reset kata sandi akunmu',
-                                style: TextStyle(
-                                    fontSize: 12, color: Color(0xFF999999)),
+                              FractionallySizedBox(
+                                widthFactor: val,
+                                child: Container(
+                                  height: 12,
+                                  decoration: BoxDecoration(color: const Color(0xFFF7924A), borderRadius: BorderRadius.circular(99)),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded,
-                            color: Color(0xFFCCCCCC), size: 22),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              //  PENCAPAIAN 
-              _buildSectionHeader(
-                'Pencapaian',
-                trailing: GestureDetector(
-                  onTap: _showAllBadgesSheet,
-                  child: const Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFF7924A),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: badgePreview.isEmpty
-                    ? Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3EC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFFBD2B6)),
-                        ),
-                        child: Column(
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('🏅',
-                                style: TextStyle(fontSize: 36)),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Belum ada badge. Selesaikan misi!',
-                              style: TextStyle(
-                                  color: Colors.grey[400], fontSize: 13),
-                            ),
+                            Text('$xp / $xpNeeded XP',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFF7924A))),
+                            Text(level < 5 ? 'Menuju ${_levelNameFromLevel(level + 1)}' : 'Level Maksimum! 🎉',
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF999999))),
                           ],
                         ),
-                      )
-                    : Row(
-                        children: List.generate(
-                          badgePreview.length.clamp(0, 3),
-                          (i) => Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(
-                                  right: i < badgePreview.length - 1 ? 12 : 0),
-                              child: _buildBadgeCard(badgePreview[i]),
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: 24),
-
-              //  KONTRIBUSI 
-              _buildSectionHeader('Kontribusi Kamu'),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        label: 'Tempat Ditambahkan',
-                        value: '$_totalTempat',
-                        color: const Color(0xFFF7924A),
-                        bgColor: const Color(0xFFFFF3EC),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        label: 'Ulasan Ditulis',
-                        value: '$_totalUlasan',
-                        color: const Color(0xFF7C83FD),
-                        bgColor: const Color(0xFFEEEFFF),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        label: 'Artikel Dibaca',
-                        value: '$_totalArtikel',
-                        color: const Color(0xFF2ECC71),
-                        bgColor: const Color(0xFFE8F8F0),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        label: 'Total Badge',
-                        value: '${_badges.length}',
-                        color: const Color(0xFFFFB800),
-                        bgColor: const Color(0xFFFFF8E0),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              //  KELUAR AKUN 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GestureDetector(
-                  onTap: _handleLogout,
-                  child: Container(
-                    width: 180,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                      border: Border.all(
-                          color: const Color(0xFFF7924A), width: 1.5),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.logout_rounded,
-                            color: Color(0xFFF7924A), size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'Keluar Akun',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            color: Color(0xFFF7924A),
-                          ),
-                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 24),
 
-              const SizedBox(height: 100),
-            ],
+                _buildSectionHeader('Keamanan Akun'),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GestureDetector(
+                    onTap: _showChangePasswordDialog,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFEEEEEE), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(color: const Color(0xFFFFF3EC), borderRadius: BorderRadius.circular(12)),
+                            child: const Icon(Icons.lock_outline_rounded, size: 20, color: Color(0xFFF7924A)),
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Ubah Kata Sandi',
+                                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1A1A2E))),
+                                SizedBox(height: 2),
+                                Text('Ubah atau reset kata sandi akunmu',
+                                    style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded, color: Color(0xFFCCCCCC), size: 22),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                _buildSectionHeader(
+                  'Pencapaian',
+                  trailing: GestureDetector(
+                    onTap: _showAllBadgesSheet,
+                    child: const Text('Lihat Semua',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFFF7924A))),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: badgePreview.isEmpty
+                      ? Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF3EC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFFBD2B6)),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text('🏅', style: TextStyle(fontSize: 36)),
+                              const SizedBox(height: 8),
+                              Text('Belum ada badge. Selesaikan misi!',
+                                  style: TextStyle(color: Colors.grey[400], fontSize: 13)),
+                            ],
+                          ),
+                        )
+                      : Row(
+                          children: List.generate(
+                            badgePreview.length.clamp(0, 3),
+                            (i) => Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(right: i < badgePreview.length - 1 ? 12 : 0),
+                                child: _buildBadgeCard(badgePreview[i]),
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 24),
+
+                _buildSectionHeader('Kontribusi Kamu'),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          label: 'Tempat Ditambahkan',
+                          value: '$_totalTempat',
+                          color: const Color(0xFFF7924A),
+                          bgColor: const Color(0xFFFFF3EC),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          label: 'Ulasan Ditulis',
+                          value: '$_totalUlasan',
+                          color: const Color(0xFF7C83FD),
+                          bgColor: const Color(0xFFEEEFFF),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          label: 'Artikel Dibaca',
+                          value: '$_totalArtikel',
+                          color: const Color(0xFF2ECC71),
+                          bgColor: const Color(0xFFE8F8F0),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          label: 'Total Badge',
+                          value: '${_badges.length}',
+                          color: const Color(0xFFFFB800),
+                          bgColor: const Color(0xFFFFF8E0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GestureDetector(
+                    onTap: _handleLogout,
+                    child: Container(
+                      width: 180,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(color: const Color(0xFFF7924A), width: 1.5),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.logout_rounded, color: Color(0xFFF7924A), size: 18),
+                          SizedBox(width: 8),
+                          Text('Keluar Akun',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Color(0xFFF7924A))),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
-  // WIDGET HELPERS
 
   Widget _buildSectionHeader(String title, {Widget? trailing}) {
     return Padding(
@@ -1241,10 +1071,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A2E))),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
           if (trailing != null) trailing,
         ],
       ),
@@ -1256,22 +1083,18 @@ class _ProfileScreenState extends State<ProfileScreen>
       onTap: () => showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(badge['badge_icon'] ?? '🏅',
-                  style: const TextStyle(fontSize: 48)),
+              Text(badge['badge_icon'] ?? '🏅', style: const TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
               Text(badge['badge_name'] ?? '',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                   textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(badge['deskripsi'] ?? '',
-                  style: const TextStyle(
-                      fontSize: 13, color: Color(0xFF999999)),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF999999)),
                   textAlign: TextAlign.center),
             ],
           ),
@@ -1301,8 +1124,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
               child: Center(
-                child: Text(badge['badge_icon'] ?? '🏅',
-                    style: const TextStyle(fontSize: 26)),
+                child: Text(badge['badge_icon'] ?? '🏅', style: const TextStyle(fontSize: 26)),
               ),
             ),
             const SizedBox(height: 8),
@@ -1313,11 +1135,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1A1A2E),
-                ),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
               ),
             ),
           ],
@@ -1350,8 +1168,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
             child: Center(
-              child: Text(badge['badge_icon'] ?? '🏅',
-                  style: const TextStyle(fontSize: 26)),
+              child: Text(badge['badge_icon'] ?? '🏅', style: const TextStyle(fontSize: 26)),
             ),
           ),
           const SizedBox(height: 8),
@@ -1362,11 +1179,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A2E),
-              ),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
             ),
           ),
         ],
@@ -1390,307 +1203,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color.withOpacity(0.8))),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color.withOpacity(0.8))),
           const SizedBox(height: 6),
           Text(value,
-              style: TextStyle(
-                  fontSize: 30, fontWeight: FontWeight.w900, color: color)),
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: color)),
         ],
-      ),
-    );
-  }
-}
-
-// FORGOT PASSWORD 
-
-class _ForgotPasswordDialog extends StatefulWidget {
-  final DatabaseHelper db;
-  final String initialEmail;
-  final List<String> securityQuestions;
-  final VoidCallback onSuccess;
-
-  const _ForgotPasswordDialog({
-    required this.db,
-    required this.initialEmail,
-    required this.securityQuestions,
-    required this.onSuccess,
-  });
-
-  @override
-  State<_ForgotPasswordDialog> createState() => _ForgotPasswordDialogState();
-}
-
-class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
-  int _step = 1;
-
-  final _emailCtrl = TextEditingController();
-  final _answerCtrl = TextEditingController();
-  final _newPassCtrl = TextEditingController();
-  final _confirmPassCtrl = TextEditingController();
-
-  String? _securityQuestion;
-  bool _isLoading = false;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailCtrl.text = widget.initialEmail;
-  }
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _answerCtrl.dispose();
-    _newPassCtrl.dispose();
-    _confirmPassCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _findAccount() async {
-    final email = _emailCtrl.text.trim();
-    if (email.isEmpty) {
-      _showError('Masukkan email terlebih dahulu.');
-      return;
-    }
-    setState(() => _isLoading = true);
-    final question = await widget.db.getSecurityQuestion(email);
-    setState(() => _isLoading = false);
-    if (question == null || question.isEmpty) {
-      _showError(
-          'Email tidak ditemukan atau tidak memiliki pertanyaan keamanan.');
-      return;
-    }
-    setState(() {
-      _securityQuestion = question;
-      _step = 2;
-    });
-  }
-
-  Future<void> _resetPassword() async {
-    if (_newPassCtrl.text != _confirmPassCtrl.text) {
-      _showError('Konfirmasi kata sandi tidak cocok.');
-      return;
-    }
-    if (_newPassCtrl.text.length < 6) {
-      _showError('Kata sandi baru minimal 6 karakter.');
-      return;
-    }
-    if (_answerCtrl.text.trim().isEmpty) {
-      _showError('Jawaban tidak boleh kosong.');
-      return;
-    }
-    setState(() => _isLoading = true);
-    final ok = await widget.db.resetPasswordWithSecurityAnswer(
-      email: _emailCtrl.text.trim(),
-      answer: _answerCtrl.text,
-      newPassword: _newPassCtrl.text,
-    );
-    setState(() => _isLoading = false);
-    if (!ok) {
-      _showError('Jawaban pertanyaan keamanan salah. Coba lagi.');
-      return;
-    }
-    if (mounted) {
-      Navigator.pop(context);
-      widget.onSuccess();
-    }
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: const Color(0xFFFF4444),
-        behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: [
-          if (_step == 2)
-            GestureDetector(
-              onTap: () => setState(() => _step = 1),
-              child: const Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(Icons.arrow_back_ios_rounded,
-                    size: 18, color: Colors.black),
-              ),
-            ),
-          const Expanded(
-            child: Text(
-              'Lupa Kata Sandi',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800, color: Color(0xFFF7924A)),
-            ),
-          ),
-        ],
-      ),
-      content: _isLoading
-          ? const SizedBox(
-              height: 80,
-              child: Center(
-                  child: CircularProgressIndicator(color: Color(0xFFF7924A))),
-            )
-          : _step == 1
-              ? _buildStep1()
-              : _buildStep2(),
-      actions: _isLoading
-          ? []
-          : [
-              OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.grey),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Batal',
-                    style: TextStyle(color: Colors.grey)),
-              ),
-              ElevatedButton(
-                onPressed: _step == 1 ? _findAccount : _resetPassword,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF7924A),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(
-                  _step == 1 ? 'Cari Akun' : 'Reset Kata Sandi',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-    );
-  }
-
-  Widget _buildStep1() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Masukkan email akunmu untuk mencari pertanyaan keamanan.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF777777)),
-        ),
-        const SizedBox(height: 14),
-        const Text('Email',
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF999999))),
-        const SizedBox(height: 6),
-        _buildField(_emailCtrl, 'Masukkan email',
-            keyboardType: TextInputType.emailAddress),
-      ],
-    );
-  }
-
-  Widget _buildStep2() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF3EC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFFBD2B6)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Pertanyaan Keamanan',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFF7924A),
-                      letterSpacing: 0.5)),
-              const SizedBox(height: 4),
-              Text(_securityQuestion ?? '',
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A2E))),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        const Text('Jawaban',
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF999999))),
-        const SizedBox(height: 6),
-        _buildField(_answerCtrl, 'Masukkan jawaban'),
-        const SizedBox(height: 14),
-        const Text('Kata Sandi Baru',
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF999999))),
-        const SizedBox(height: 6),
-        _buildField(_newPassCtrl, 'Minimal 6 karakter',
-            obscure: _obscureNew,
-            onToggle: () => setState(() => _obscureNew = !_obscureNew)),
-        const SizedBox(height: 10),
-        _buildField(_confirmPassCtrl, 'Konfirmasi kata sandi baru',
-            obscure: _obscureConfirm,
-            onToggle: () =>
-                setState(() => _obscureConfirm = !_obscureConfirm)),
-      ],
-    );
-  }
-
-  Widget _buildField(
-    TextEditingController ctrl,
-    String hint, {
-    TextInputType keyboardType = TextInputType.text,
-    bool obscure = false,
-    VoidCallback? onToggle,
-  }) {
-    return TextField(
-      controller: ctrl,
-      keyboardType: keyboardType,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: const Color.fromARGB(255, 255, 241, 231),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFF7924A)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFF7924A), width: 2),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        suffixIcon: onToggle != null
-            ? IconButton(
-                icon: Icon(
-                  obscure ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFFF7924A),
-                  size: 18,
-                ),
-                onPressed: onToggle,
-              )
-            : null,
       ),
     );
   }

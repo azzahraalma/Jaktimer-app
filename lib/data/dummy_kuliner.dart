@@ -894,7 +894,7 @@ const List<Map<String, dynamic>> dummyKulinerData = [
   'rating': 4.9,
   'jumlah_ulasan': 1,
   'image_asset':
-      'assets/images/kuliner/JAJANAN PEWE.jpg',
+      'assets/images/kuliner/JAJANAN-PEWE.jpg',
   'latitude': -6.3371,
   'longitude': 106.9022,
   'jam_buka': '11:00',

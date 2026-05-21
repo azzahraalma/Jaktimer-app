@@ -8,6 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
+
 
 import '../helper/database_helper.dart';
 
@@ -116,7 +119,7 @@ class _PlaceSuggestion {
 
   factory _PlaceSuggestion.fromJson(Map<String, dynamic> j) {
     final display = j['display_name'] as String? ?? '';
-    final short   = display.split(',').take(3).join(',').trim();
+    final short = display.split(',').take(3).join(',').trim();
     return _PlaceSuggestion(
       displayName: display,
       shortName: short,
@@ -148,52 +151,50 @@ class _KulinerFormBody extends StatefulWidget {
 class _KulinerFormBodyState extends State<_KulinerFormBody> {
   final DatabaseHelper _db = DatabaseHelper();
 
-  final _namaController     = TextEditingController();
-  final _lokasiController   = TextEditingController();
-  final _tentangController  = TextEditingController();
+  final _namaController = TextEditingController();
+  final _lokasiController = TextEditingController();
+  final _tentangController = TextEditingController();
   final _hargaMinController = TextEditingController();
   final _hargaMaxController = TextEditingController();
-  final _jamBukaController  = TextEditingController();
+  final _jamBukaController = TextEditingController();
   final _jamTutupController = TextEditingController();
   final _kategoriController = TextEditingController();
-  final _searchController   = TextEditingController();
+  final _searchController = TextEditingController();
 
   File? _selectedImage;
-  bool  _isSaving = false;
+  bool _isSaving = false;
 
-  bool   _showMap   = false;
+  bool _showMap = false;
   LatLng _pinLatLng = const LatLng(-6.2615, 106.9005);
-  final  MapController _mapController = MapController();
+  final MapController _mapController = MapController();
 
-  List<_PlaceSuggestion> _suggestions   = [];
-  bool  _loadingSuggest = false;
-  bool  _showDropdown   = false;
+  List<_PlaceSuggestion> _suggestions = [];
+  bool _loadingSuggest = false;
+  bool _showDropdown = false;
   Timer? _debounce;
 
-  // bounding box Jakarta Timur 
   static bool _isInJakTim(double lat, double lon) =>
-      lat >= -6.37 && lat <= -6.19 &&
-      lon >= 106.82 && lon <= 106.98;
+      lat >= -6.37 && lat <= -6.19 && lon >= 106.82 && lon <= 106.98;
 
   static const _fasilitasOptions = [
     {'label': 'Makan di Tempat', 'icon': Icons.restaurant_rounded},
-    {'label': 'Delivery',        'icon': Icons.delivery_dining_rounded},
-    {'label': 'Takeaway',        'icon': Icons.takeout_dining_rounded},
-    {'label': 'Parkir',          'icon': Icons.local_parking_rounded},
-    {'label': 'WiFi',            'icon': Icons.wifi_rounded},
-    {'label': 'AC',              'icon': Icons.ac_unit_rounded},
-    {'label': 'Outdoor',         'icon': Icons.deck_rounded},
-    {'label': 'Live Music',      'icon': Icons.music_note_rounded},
-    {'label': 'Toilet Umum',     'icon': Icons.wc_rounded},
-    {'label': 'Area Bermain',    'icon': Icons.toys_rounded},
+    {'label': 'Delivery', 'icon': Icons.delivery_dining_rounded},
+    {'label': 'Takeaway', 'icon': Icons.takeout_dining_rounded},
+    {'label': 'Parkir', 'icon': Icons.local_parking_rounded},
+    {'label': 'WiFi', 'icon': Icons.wifi_rounded},
+    {'label': 'AC', 'icon': Icons.ac_unit_rounded},
+    {'label': 'Outdoor', 'icon': Icons.deck_rounded},
+    {'label': 'Live Music', 'icon': Icons.music_note_rounded},
+    {'label': 'Toilet Umum', 'icon': Icons.wc_rounded},
+    {'label': 'Area Bermain', 'icon': Icons.toys_rounded},
   ];
 
   final Set<String> _selectedFasilitas = {};
 
-  static const _orange       = Color(0xFFF7924A);
-  static const _orangeLight  = Color(0xFFFFF2E8);
+  static const _orange = Color(0xFFF7924A);
+  static const _orangeLight = Color(0xFFFFF2E8);
   static const _orangeBorder = Color(0xFFFBD2B6);
-  static const _dark         = Color(0xFF1A1A2E);
+  static const _dark = Color(0xFF1A1A2E);
 
   @override
   void dispose() {
@@ -210,7 +211,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     super.dispose();
   }
 
-  // lokasi di luar Jakarta Timur 
   Future<void> _showOutOfAreaDialog() async {
     return showDialog(
       context: context,
@@ -229,8 +229,8 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                 color: Color(0xFFFFF2E8),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.location_off_rounded,
-                  color: _orange, size: 32),
+              child:
+                  const Icon(Icons.location_off_rounded, color: _orange, size: 32),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -306,7 +306,10 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
   Future<void> _onSearchChanged(String value) async {
     _debounce?.cancel();
     if (value.trim().length < 2) {
-      setState(() { _suggestions = []; _showDropdown = false; });
+      setState(() {
+        _suggestions = [];
+        _showDropdown = false;
+      });
       return;
     }
 
@@ -332,12 +335,13 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
         if (resp.statusCode == 200) {
           final List<dynamic> data = jsonDecode(resp.body);
           setState(() {
-            _suggestions  = data.map((j) => _PlaceSuggestion.fromJson(j)).toList();
+            _suggestions =
+                data.map((j) => _PlaceSuggestion.fromJson(j)).toList();
             _showDropdown = _suggestions.isNotEmpty;
           });
         }
-      } catch (_) {}
-      finally {
+      } catch (_) {
+      } finally {
         if (mounted) setState(() => _loadingSuggest = false);
       }
     });
@@ -351,12 +355,12 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
 
     final latlng = LatLng(s.lat, s.lon);
     setState(() {
-      _pinLatLng             = latlng;
+      _pinLatLng = latlng;
       _lokasiController.text = s.shortName;
       _searchController.text = s.shortName;
-      _showDropdown          = false;
-      _suggestions           = [];
-      _showMap               = true;
+      _showDropdown = false;
+      _suggestions = [];
+      _showMap = true;
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mapController.move(latlng, 16);
@@ -380,7 +384,10 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
         return;
       }
 
-      setState(() { _pinLatLng = latlng; _showMap = true; });
+      setState(() {
+        _pinLatLng = latlng;
+        _showMap = true;
+      });
       _mapController.move(latlng, 16);
       await _reverseGeocode(latlng);
     } catch (_) {
@@ -399,9 +406,9 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
           .timeout(const Duration(seconds: 8));
 
       if (resp.statusCode == 200 && mounted) {
-        final json    = jsonDecode(resp.body);
+        final json = jsonDecode(resp.body);
         final address = json['address'] as Map<String, dynamic>? ?? {};
-        final parts   = [
+        final parts = [
           address['road'],
           address['suburb'] ?? address['neighbourhood'],
           address['city_district'],
@@ -424,36 +431,56 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     } catch (_) {}
   }
 
-  Future<void> _save() async {
-    if (_namaController.text.trim().isEmpty) {
-      _showSnack('Nama tempat wajib diisi!');
-      return;
-    }
-    if (_kategoriController.text.trim().isEmpty) {
-      _showSnack('Kategori wajib diisi!');
-      return;
-    }
+Future<void> _save() async {
+  if (_namaController.text.trim().isEmpty) {
+    _showSnack('Nama tempat wajib diisi!');
+    return;
+  }
+  if (_kategoriController.text.trim().isEmpty) {
+    _showSnack('Kategori wajib diisi!');
+    return;
+  }
 
-    setState(() => _isSaving = true);
+  setState(() => _isSaving = true);
 
-    final data = {
-      'nama'        : _namaController.text.trim(),
-      'kategori'    : _kategoriController.text.trim(),
-      'alamat'      : _lokasiController.text.trim(),
-      'deskripsi'   : _tentangController.text.trim(),
-      'harga_min'   : int.tryParse(_hargaMinController.text) ?? 0,
-      'harga_max'   : int.tryParse(_hargaMaxController.text) ?? 0,
-      'jam_buka'    : _jamBukaController.text.trim(),
-      'jam_tutup'   : _jamTutupController.text.trim(),
-      'fasilitas'   : _selectedFasilitas.join(','),
-      'image_url'   : _selectedImage?.path ?? '',
-      'rating'      : 0.0,
-      'jumlah_ulasan': 0,
-      'latitude'    : _pinLatLng.latitude,
-      'longitude'   : _pinLatLng.longitude,
-    };
+  final userId = AuthService.currentUid;
+  int addedBy = int.tryParse(userId ?? '1') ?? 1;
 
+  final data = {
+    'nama': _namaController.text.trim(),
+    'kategori': _kategoriController.text.trim(),
+    'alamat': _lokasiController.text.trim(),
+    'deskripsi': _tentangController.text.trim(),
+    'harga_min': int.tryParse(_hargaMinController.text) ?? 0,
+    'harga_max': int.tryParse(_hargaMaxController.text) ?? 0,
+    'jam_buka': _jamBukaController.text.trim(),
+    'jam_tutup': _jamTutupController.text.trim(),
+    'fasilitas': _selectedFasilitas.join(','),
+    'image_asset': _selectedImage?.path ?? 'assets/images/kuliner/placeholder.png',
+    'rating': 0.0,
+    'jumlah_ulasan': 0,
+    'latitude': _pinLatLng.latitude,
+    'longitude': _pinLatLng.longitude,
+    'is_populer': 0,
+    'added_by': addedBy,
+  };
+
+  try {
     await _db.insertKuliner(data);
+    
+    // FIRESTORE MISI
+    if (userId != null) {
+      try {
+        final misiSelesai = await FirestoreService.getMisiSelesaiHariIni(userId);
+        if (!misiSelesai.contains('tambah_kuliner')) {
+          await FirestoreService.completeMisi(userId, 'tambah_kuliner');
+          await FirestoreService.addXp(userId, 100, keterangan: 'Misi: tambah_kuliner');
+        }
+      } catch (e) {
+        print('Error Firestore: $e');
+      }
+    }
+    
     setState(() => _isSaving = false);
 
     if (widget.onSubmit != null) {
@@ -467,14 +494,14 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
       await Future.delayed(const Duration(milliseconds: 300));
       widget.onMisiSelesai?.call();
     } else {
-      _showSnack('Tempat berhasil ditambahkan! 🎉');
-      await Future.delayed(const Duration(milliseconds: 700));
-      if (mounted) {
-        widget.onClose?.call();
-        Navigator.pop(context);
-      }
+      widget.onClose?.call();
+      Navigator.pop(context);
     }
+  } catch (e) {
+    setState(() => _isSaving = false);
+    print('Error: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +514,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Row(
                 children: [
                   const Expanded(
@@ -516,35 +542,27 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
               _buildLabel('Unggah Foto'),
               const SizedBox(height: 8),
               _PhotoPicker(image: _selectedImage, onTap: _pickImage),
-
               const SizedBox(height: 18),
-
               _buildLabel('Nama Tempat'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _namaController,
                 hint: 'Masukkan nama tempat',
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Kategori'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _kategoriController,
                 hint: 'Contoh: Restoran, Kafe, Warung, Street Food…',
-                prefixIcon: const Icon(Icons.category_rounded,
-                    color: _orange, size: 20),
+                prefixIcon:
+                    const Icon(Icons.category_rounded, color: _orange, size: 20),
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Lokasi'),
               const SizedBox(height: 4),
               const Text(
@@ -552,18 +570,14 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                 style: TextStyle(fontSize: 12, color: Color(0xFF999999)),
               ),
               const SizedBox(height: 8),
-
               _buildLocationSearch(),
-
               if (_showDropdown) _buildSuggestionsDropdown(),
-
               const SizedBox(height: 10),
-
               GestureDetector(
                 onTap: () => setState(() => _showMap = !_showMap),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: _showMap ? _orangeLight : const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(50),
@@ -592,15 +606,12 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                   ),
                 ),
               ),
-
               AnimatedSize(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
                 child: _showMap ? _buildMiniMap() : const SizedBox.shrink(),
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Range Harga (Rp)'),
               const SizedBox(height: 8),
               Row(
@@ -622,34 +633,27 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Jam Operasional'),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
                     child: _buildTextField(
-                        controller: _jamBukaController,
-                        hint: 'Buka (08:00)'),
+                        controller: _jamBukaController, hint: 'Buka (08:00)'),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text('–',
-                        style: TextStyle(
-                            fontSize: 18, color: Color(0xFF999999))),
+                        style: TextStyle(fontSize: 18, color: Color(0xFF999999))),
                   ),
                   Expanded(
                     child: _buildTextField(
-                        controller: _jamTutupController,
-                        hint: 'Tutup (22:00)'),
+                        controller: _jamTutupController, hint: 'Tutup (22:00)'),
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Fasilitas'),
               const SizedBox(height: 10),
               _FasilitasPicker(
@@ -663,9 +667,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                   });
                 },
               ),
-
               const SizedBox(height: 16),
-
               _buildLabel('Tentang'),
               const SizedBox(height: 8),
               Container(
@@ -690,7 +692,6 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
             ],
           ),
         ),
-
         Positioned(
           bottom: 0,
           left: 0,
@@ -718,8 +719,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : const Icon(Icons.save_rounded,
-                        size: 20, color: Colors.white),
+                    : const Icon(Icons.save_rounded, size: 20, color: Colors.white),
                 label: Text(
                   _isSaving ? 'Menyimpan…' : 'Simpan',
                   style: const TextStyle(
@@ -763,8 +763,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
               style: const TextStyle(fontSize: 14, color: _dark),
               decoration: const InputDecoration(
                 hintText: 'Cari tempat di Jakarta Timur…',
-                hintStyle:
-                    TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
+                hintStyle: TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
                 border: InputBorder.none,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -821,19 +820,18 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
         borderRadius: BorderRadius.circular(16),
         child: Column(
           children: _suggestions.asMap().entries.map((entry) {
-            final i      = entry.key;
-            final s      = entry.value;
+            final i = entry.key;
+            final s = entry.value;
             final inArea = _isInJakTim(s.lat, s.lon);
             return InkWell(
               onTap: () => _onSuggestionTap(s),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   border: i < _suggestions.length - 1
                       ? const Border(
-                          bottom: BorderSide(
-                              color: Color(0xFFF5F5F5), width: 1))
+                          bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1))
                       : null,
                 ),
                 child: Row(
@@ -931,8 +929,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.kuliner.app',
                   maxZoom: 19,
                 ),
@@ -988,8 +985,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 color: Colors.white.withValues(alpha: 0.95),
                 child: Row(
                   children: [
@@ -1043,8 +1039,7 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
         style: const TextStyle(fontSize: 14, color: _dark),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle:
-              const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
+          hintStyle: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14),
           prefixIcon: prefixIcon,
           border: InputBorder.none,
           contentPadding:
@@ -1061,7 +1056,7 @@ class _PhotoPicker extends StatelessWidget {
 
   const _PhotoPicker({required this.image, required this.onTap});
 
-  static const _orange      = Color(0xFFF7924A);
+  static const _orange = Color(0xFFF7924A);
   static const _orangeLight = Color(0xFFFFF2E8);
 
   @override

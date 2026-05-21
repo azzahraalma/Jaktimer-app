@@ -201,7 +201,6 @@ class ArtikelDetailScreen extends StatelessWidget {
                       Divider(color: Colors.grey.shade100, height: 1),
                       const SizedBox(height: 16),
 
-                      // Ringkasan
                       if (artikel['ringkasan'] != null) ...[
                         Container(
                           padding: const EdgeInsets.all(14),
@@ -237,7 +236,6 @@ class ArtikelDetailScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                       ],
 
-                      // Isi artikel
                       Text(
                         artikel['isi'] as String? ?? '',
                         style: const TextStyle(

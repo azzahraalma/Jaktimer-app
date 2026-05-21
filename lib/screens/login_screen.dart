@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../helper/database_helper.dart';
+import '../services/auth_service.dart';
 import 'register_screen.dart';
 import 'starter_screen.dart';
 import 'beranda.dart';
@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
   bool _isLoading       = false;
+  bool _isSendingReset  = false;
 
   static const _orange      = Color(0xFFFF8C00);
   static const _bgField     = Color(0xFFF5F5F5);
@@ -41,26 +42,68 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final db   = DatabaseHelper();
-      final user = await db.loginUser(email, password);
+      await AuthService.loginUser(email: email, password: password);
 
       if (!mounted) return;
 
-      if (user == null) {
-        _showSnack('Email atau password salah!');
-      } else {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('userId', user['id'] as int);
-
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      switch (e.code) {
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+          _showSnack('Email atau password salah!');
+          break;
+        case 'user-disabled':
+          _showSnack('Akun ini telah dinonaktifkan.');
+          break;
+        case 'too-many-requests':
+          _showSnack('Terlalu banyak percobaan. Coba lagi nanti.');
+          break;
+        default:
+          _showSnack('Login gagal. Coba lagi.');
       }
+    } catch (_) {
+      if (mounted) _showSnack('Terjadi kesalahan. Coba lagi.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _sendResetPassword() async {
+    final email = _emailController.text.trim();
+    
+    if (email.isEmpty) {
+      _showSnack('Masukkan email terlebih dahulu');
+      return;
+    }
+    
+    if (!email.contains('@')) {
+      _showSnack('Format email tidak valid');
+      return;
+    }
+
+    setState(() => _isSendingReset = true);
+
+    try {
+      await AuthService.sendPasswordResetEmail(email);
+      if (mounted) {
+        _showSnack('Cek $email inbox atau folder spam untuk link reset password ');
+      }
+    } catch (e) {
+      if (mounted) {
+        String errorMsg = 'Gagal mengirim email reset password.';
+        if (e.toString().contains('user-not-found')) {
+          errorMsg = 'Email tidak terdaftar. Periksa kembali email Anda.';
+        }
+        _showSnack(errorMsg);
+      }
+    } finally {
+      if (mounted) setState(() => _isSendingReset = false);
     }
   }
 
@@ -108,7 +151,38 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
                     _buildLabel('Password'),
                     _buildPasswordField(),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 8),
+                    
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isSendingReset ? null : _sendResetPassword,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: _isSendingReset
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: _orange,
+                                ),
+                              )
+                            : const Text(
+                                'Lupa Password?',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _orange,
+                                ),
+                              ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
                     _buildSubmitButton(
                       label: 'Masuk',
                       onPressed: _isLoading ? null : _doLogin,
@@ -132,8 +206,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  // Widgets
 
   Widget _buildHeader(String title) {
     return Padding(
@@ -169,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.asset(
-            'assets/images/mascot/timo_1.png',           
+            'assets/images/mascot/timo_1.png',
             fit: BoxFit.contain,
           ),
         ),

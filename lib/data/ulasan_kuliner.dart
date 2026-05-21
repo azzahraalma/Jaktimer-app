@@ -1,4 +1,4 @@
-const List<Map<String, dynamic>> DummyUlasanKuliner = [
+const List<Map<String, dynamic>> dummyUlasanKuliner = [
 // kecamatan_cakung
   {
     'user_id': 2,

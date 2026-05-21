@@ -50,10 +50,9 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     }
   }
 
-  // Badge helper 
   Future<void> _checkAndShowBadges() async {
     if (widget.userId == null) return;
-    final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!);
+  final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId!.toString());
     if (newBadges.isNotEmpty && mounted) {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
@@ -66,7 +65,6 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
     }
   }
 
-  //  Misi callbacks 
   Future<void> _onReviewSubmitted() async {
     if (widget.misiKode == 'tambah_review_kuliner' &&
         widget.onMisiSelesai != null) {
@@ -229,7 +227,6 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
             : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  //  HEADER 
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -354,7 +351,6 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                     ),
                   ),
 
-                  //  FEATURED 
                   if (featured != null)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -481,7 +477,6 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                       ),
                     ),
 
-                  //  GRID 
                   if (gridItems.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -512,7 +507,6 @@ class _JelajahKulinerScreenState extends State<JelajahKulinerScreen> {
                       ),
                     ),
 
-                  //  LIST 
                   if (listItems.isNotEmpty)
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(20, 14, 20, 100),

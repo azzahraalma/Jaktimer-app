@@ -86,10 +86,10 @@ class _XpPopupState extends State<XpPopup> with SingleTickerProviderStateMixin {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B35).withOpacity(0.2),
+                        color: const Color(0xFFF7924A).withOpacity(0.2),
                         shape: BoxShape.circle),
                     child: const Icon(Icons.stars_rounded,
-                        color: Color(0xFFFF6B35), size: 22),
+                        color: Color(0xFFF7924A), size: 22),
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -99,7 +99,7 @@ class _XpPopupState extends State<XpPopup> with SingleTickerProviderStateMixin {
                       Text('+${widget.xp} XP',
                           style: const TextStyle(
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFFFF6B35),
+                              color: const Color(0xFFF7924A),
                               fontSize: 16,
                               decoration: TextDecoration.none)),
                       Text(widget.label,

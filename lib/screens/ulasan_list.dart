@@ -93,7 +93,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
               : CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                    // summary
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -101,7 +100,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // filter
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -109,7 +107,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // hasil
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -123,7 +120,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
                       ),
                     ),
 
-                    // list review
                     _filteredUlasan.isEmpty
                         ? SliverToBoxAdapter(child: _buildEmptyFilter())
                         : SliverPadding(
@@ -187,7 +183,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // summary
   Widget _buildSummaryCard() {
     final avg = _avgRating;
     final dist = _ratingDistribution;
@@ -303,7 +298,6 @@ class _UlasanListScreenState extends State<UlasanListScreen> {
     );
   }
 
-  // rating filter
   Widget _buildFilterChips() {
     final options = [
       {'label': 'Semua', 'value': 0},

@@ -1,9 +1,9 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../data/artikel.dart';
 import '../data/kuis_harian.dart';
-import '../helper/database_helper.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../widgets/xp_popup.dart';
 import 'artikel_detail_screen.dart';
 import 'semua_artikel_screen.dart';
@@ -23,10 +23,6 @@ class UlikScreen extends StatefulWidget {
 }
 
 class _UlikScreenState extends State<UlikScreen> {
-  DatabaseHelper? _dbInstance;
-  DatabaseHelper get _db => _dbInstance ??= DatabaseHelper();
-
-  // ── Audio ─────────────────────────────────
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   List<Map<String, dynamic>> _randomArtikel = [];
@@ -42,15 +38,7 @@ class _UlikScreenState extends State<UlikScreen> {
   bool _showXpPopup = false;
   String _xpLabel = '';
 
-  int _userId = 1;
-
-  String get _todayKey {
-    final now = DateTime.now();
-    return '${now.year}_${now.month}_${now.day}';
-  }
-
-  String get _keyKuisResult => 'quiz_result_${_userId}_$_todayKey';
-  String get _keyArtikelXp => 'artikel_xp_${_userId}_$_todayKey';
+  String get _uid => AuthService.currentUid ?? '';
 
   @override
   void initState() {
@@ -63,8 +51,6 @@ class _UlikScreenState extends State<UlikScreen> {
     _audioPlayer.dispose();
     super.dispose();
   }
-
-  // ── Sound helpers ─────────────────────────
 
   Future<void> _playRight() async {
     try {
@@ -82,11 +68,9 @@ class _UlikScreenState extends State<UlikScreen> {
     }
   }
 
-  // ── Data ──────────────────────────────────
-
-  Map<String, dynamic> _getKuisUntukUser(int userId) {
+  Map<String, dynamic> _getKuisUntukUser(String uid) {
     final now = DateTime.now();
-    final seed = userId * 31 + now.year * 366 + now.month * 31 + now.day;
+    final seed = uid.hashCode.abs() * 31 + now.year * 366 + now.month * 31 + now.day;
     final index = seed % kuisHarianData.length;
     return kuisHarianData[index];
   }
@@ -98,35 +82,28 @@ class _UlikScreenState extends State<UlikScreen> {
   }
 
   Future<void> _loadAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('user_id') ?? 1;
+    if (_uid.isEmpty) return;
 
-    final kuis = _getKuisUntukUser(userId);
+    final kuis = _getKuisUntukUser(_uid);
+    final savedResult = await FirestoreService.getHasilKuisHarianHariIni(_uid);
+    final artikelClaimed = await FirestoreService.hasArtikelXpClaimed(_uid);
 
-    final savedResult = prefs.getString('quiz_result_${userId}_$_todayKey');
     int? selectedOption;
     bool submitted = false;
     bool isBenar = false;
     int xpEarned = 0;
 
     if (savedResult != null) {
-      final parts = savedResult.split(',');
-      if (parts.length == 3) {
-        selectedOption = int.tryParse(parts[0]);
-        isBenar = parts[1] == 'true';
-        xpEarned = int.tryParse(parts[2]) ?? 0;
-        submitted = true;
-      }
+      selectedOption = savedResult['jawaban_index'] as int?;
+      isBenar = savedResult['is_benar'] as bool? ?? false;
+      xpEarned = savedResult['xp_earned'] as int? ?? 0;
+      submitted = true;
     }
-
-    final artikelClaimed =
-        prefs.getBool('artikel_xp_${userId}_$_todayKey') ?? false;
 
     _pickRandomArtikel();
 
     if (!mounted) return;
     setState(() {
-      _userId = userId;
       _kuisHariIni = kuis;
       _submitted = submitted;
       _selectedOption = selectedOption;
@@ -136,67 +113,73 @@ class _UlikScreenState extends State<UlikScreen> {
     });
   }
 
-  // ── Submit kuis ───────────────────────────
+  void _showXpPopupWithDelay(int xp, String label) {
+    setState(() {
+      _xpEarned = xp;
+      _xpLabel = label;
+      _showXpPopup = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => _showXpPopup = false);
+      }
+    });
+  }
 
   Future<void> _submitKuis() async {
-    if (_selectedOption == null || _submitted) return;
+    if (_selectedOption == null || _submitted || _uid.isEmpty) return;
 
     final jawabanBenar = _kuisHariIni['jawaban_benar'] as int;
     final benar = _selectedOption == jawabanBenar;
-    final xp = benar ? 50 : 10;
+    final kuisId = _kuisHariIni['id'] as int? ?? 0;
 
-    // ── Play sound sesuai hasil ──
+    final xp = await FirestoreService.saveKuisHarianResult(
+      uid: _uid,
+      kuisId: kuisId,
+      jawabanIndex: _selectedOption!,
+      isBenar: benar,
+    );
+
+    if (xp == 0 && !_submitted) {
+      await _loadAll();
+      return;
+    }
+
     if (benar) {
       await _playRight();
     } else {
       await _playWrong();
     }
 
+    _showXpPopupWithDelay(
+      xp,
+      benar ? 'Kuis Harian Benar! 🎉' : 'Tetap semangat belajar!',
+    );
+
     setState(() {
       _submitted = true;
       _isBenar = benar;
-      _xpEarned = xp;
-      _xpLabel = benar ? 'Kuis Harian Benar! 🎉' : 'Tetap semangat belajar!';
-      _showXpPopup = true;
     });
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyKuisResult, '$_selectedOption,$benar,$xp');
-
-    _db.updateUserXp(_userId, xp);
-    _db.logXp(
-      _userId,
-      xp,
-      benar ? 'Kuis Harian Benar! 🎉' : 'Kuis Harian Salah',
-    );
 
     if (widget.onKuisSelesai != null) {
       await widget.onKuisSelesai!();
     }
   }
 
-  // ── Buka artikel ──────────────────────────
-
   Future<void> _openArtikel(Map<String, dynamic> artikel) async {
-    if (!_artikelXpClaimed) {
-      setState(() => _artikelXpClaimed = true);
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_keyArtikelXp, true);
-
-      _db.updateUserXp(_userId, 50);
-      _db.logXp(_userId, 50, 'Baca Artikel 📖');
-
-      if (mounted) {
-        setState(() {
-          _xpEarned = 50;
-          _xpLabel = 'Baca Artikel! 📖';
-          _showXpPopup = true;
-        });
-      }
+    if (!_artikelXpClaimed && _uid.isNotEmpty) {
+      await FirestoreService.claimArtikelXp(_uid);
 
       if (widget.onArtikelSelesaiBaca != null) {
         await widget.onArtikelSelesaiBaca!();
+      }
+
+      if (mounted) {
+        _showXpPopupWithDelay(50, 'Baca Artikel! 📖');
+        setState(() {
+          _artikelXpClaimed = true;
+        });
       }
     }
 
@@ -207,8 +190,6 @@ class _UlikScreenState extends State<UlikScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,7 +199,7 @@ class _UlikScreenState extends State<UlikScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: Container(
-                  color: const Color.fromARGB(255, 255, 255, 255),
+                  color: Colors.white,
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top + 16,
                     left: 20,
@@ -236,14 +217,11 @@ class _UlikScreenState extends State<UlikScreen> {
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 14)),
-
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverGrid(
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 14,
                     crossAxisSpacing: 14,
@@ -258,9 +236,7 @@ class _UlikScreenState extends State<UlikScreen> {
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
               SliverToBoxAdapter(
                 child: Center(
                   child: GestureDetector(
@@ -272,7 +248,9 @@ class _UlikScreenState extends State<UlikScreen> {
                     ),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 22, vertical: 10),
+                        horizontal: 22,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF7924A),
                         borderRadius: BorderRadius.circular(90),
@@ -289,20 +267,16 @@ class _UlikScreenState extends State<UlikScreen> {
                   ),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _buildKuisHarian(),
                 ),
               ),
-
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
-
           if (_showXpPopup)
             Positioned(
               bottom: 100,
@@ -323,6 +297,8 @@ class _UlikScreenState extends State<UlikScreen> {
 
   Widget _buildKuisHarian() {
     final kuis = _kuisHariIni;
+    if (kuis.isEmpty) return const SizedBox.shrink();
+
     final List<String> pilihan = List<String>.from(kuis['pilihan'] as List);
     final int jawabanBenar = kuis['jawaban_benar'] as int;
     final String penjelasan = kuis['penjelasan'] as String? ?? '';
@@ -373,7 +349,9 @@ class _UlikScreenState extends State<UlikScreen> {
                   child: Container(
                     key: ValueKey(xpBadgeLabel),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50),
@@ -398,7 +376,6 @@ class _UlikScreenState extends State<UlikScreen> {
               ],
             ),
           ),
-
           Container(
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -419,7 +396,6 @@ class _UlikScreenState extends State<UlikScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 ...List.generate(pilihan.length, (i) {
                   final isSelected = _selectedOption == i;
                   final isCorrect = i == jawabanBenar;
@@ -453,14 +429,14 @@ class _UlikScreenState extends State<UlikScreen> {
                   }
 
                   return GestureDetector(
-                    onTap: _submitted
-                        ? null
-                        : () => setState(() => _selectedOption = i),
+                    onTap: _submitted ? null : () => setState(() => _selectedOption = i),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 13),
+                        horizontal: 12,
+                        vertical: 13,
+                      ),
                       decoration: BoxDecoration(
                         color: bgColor,
                         borderRadius: BorderRadius.circular(14),
@@ -510,7 +486,6 @@ class _UlikScreenState extends State<UlikScreen> {
                     ),
                   );
                 }),
-
                 if (_submitted && penjelasan.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Container(
@@ -556,7 +531,6 @@ class _UlikScreenState extends State<UlikScreen> {
                   const SizedBox(height: 12),
                 ] else
                   const SizedBox(height: 4),
-
                 if (!_submitted)
                   SizedBox(
                     width: double.infinity,
@@ -612,10 +586,6 @@ class _UlikScreenState extends State<UlikScreen> {
   }
 }
 
-// ─────────────────────────────────────────────
-//  ARTIKEL GRID CARD
-// ─────────────────────────────────────────────
-
 class _ArtikelGridCard extends StatelessWidget {
   final Map<String, dynamic> artikel;
   final VoidCallback onTap;
@@ -664,8 +634,7 @@ class _ArtikelGridCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(15)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
               child: Stack(
                 children: [
                   Image.asset(
@@ -688,7 +657,9 @@ class _ArtikelGridCard extends StatelessWidget {
                     left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: BorderRadius.circular(5),

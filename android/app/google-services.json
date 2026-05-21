@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "15875695920",
+    "project_id": "jaktimer-f423f",
+    "storage_bucket": "jaktimer-f423f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15875695920:android:0a36d7323abdc70e8ed4f5",
+        "android_client_info": {
+          "package_name": "com.example.jaktimer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTZLDIuMDIAh6umX9b09Z0boi1-B-DQXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15875695920:android:bb474f043684bc9e8ed4f5",
+        "android_client_info": {
+          "package_name": "com.example.jaktimer_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTZLDIuMDIAh6umX9b09Z0boi1-B-DQXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,3 @@
-// lib/screens/semua_artikel_screen.dart
 import 'package:flutter/material.dart';
 import '../data/artikel.dart';
 import 'artikel_detail_screen.dart';
@@ -51,7 +50,6 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // ── App Bar ───────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.white,
@@ -123,7 +121,6 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
             ),
           ),
 
-          // ── Jumlah artikel ────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -138,7 +135,6 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
             ),
           ),
 
-          // ── List Artikel ──────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             sliver: SliverList(
@@ -167,7 +163,6 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Thumbnail
                           ClipRRect(
                             borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
                             child: SizedBox(
@@ -189,7 +184,6 @@ class _SemuaArtikelScreenState extends State<SemuaArtikelScreen> {
                               ),
                             ),
                           ),
-                          // Konten
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.all(12),

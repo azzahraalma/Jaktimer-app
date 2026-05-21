@@ -5,6 +5,8 @@ import '../helper/badge_helper.dart';
 import '../widgets/badge_popup.dart';
 import '../screens/ulasan_list.dart';
 import '../widgets/xp_popup.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class KulinerDetailScreen extends StatefulWidget {
@@ -57,12 +59,13 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
     setState(() => _ulasanList = ulasan);
   }
 
-  //  Badge: cek dan tampilkan via overlay 
   Future<void> _checkAndShowBadges() async {
-    final newBadges =
-        await BadgeHelper.checkAndAwardBadges(1); // userId default 1
+    final userId = AuthService.currentUid;
+    if (userId == null) return;
+    
+    final newBadges = await BadgeHelper.checkAndAwardBadges(userId);
     if (newBadges.isEmpty || !mounted) return;
-
+    
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       _showBadgeQueue(newBadges);
@@ -101,71 +104,68 @@ class _KulinerDetailScreenState extends State<KulinerDetailScreen> {
 
   Future<void> _submitUlasan() async {
     if (_selectedRating == 0 || _ulasanController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Isi rating dan komentar dulu ya!',
-            style:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFFF7924A),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 3),
-        ),
-      );
       return;
     }
 
     setState(() => _isSubmitting = true);
 
-    await _db.insertUlasan({
-      'user_id': 1,
-      'tempat_id': widget.kuliner['id'],
-      'tipe': 'kuliner',
-      'rating': _selectedRating,
-      'komentar': _ulasanController.text.trim(),
-      'username': 'Timo',
-      'avatar_url': 'https://api.dicebear.com/7.x/adventurer/png?seed=Timo',
-    });
+    try {
+      final userId = AuthService.currentUid;
+      String username = '';
+      String avatarUrl = '';
 
-    if (widget.onReviewSubmitted != null) {
-      await widget.onReviewSubmitted!();
-    }
+      if (userId != null) {
+        final userData = await FirestoreService.getUser(userId);
+        if (userData != null) {
+          username = userData['username'] as String? ?? '';
+          avatarUrl = userData['avatar_url'] as String? ?? 'https://api.dicebear.com/7.x/adventurer/png?seed=$username';
+        }
+      }
 
-    await _checkAndShowBadges();
+      if (username.isEmpty) username = 'User';
 
-    setState(() => _showXpPopup = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _showXpPopup = false);
-    });
+      await _db.insertUlasan({
+        'user_id': int.tryParse(userId ?? '1') ?? 1,
+        'tempat_id': widget.kuliner['id'],
+        'tipe': 'kuliner',
+        'rating': _selectedRating,
+        'komentar': _ulasanController.text.trim(),
+        'username': username,
+        'avatar_url': avatarUrl,
+      });
 
-    _ulasanController.clear();
-    setState(() {
-      _selectedRating = 0;
-      _isSubmitting = false;
-    });
+      if (userId != null) {
+        try {
+          final misiSelesai = await FirestoreService.getMisiSelesaiHariIni(userId);
+          if (!misiSelesai.contains('tambah_review_kuliner')) {
+            await FirestoreService.completeMisi(userId, 'tambah_review_kuliner');
+            await FirestoreService.addXp(userId, 70, keterangan: 'Misi: tambah_review_kuliner');
+          }
+        } catch (e) {
+          print('Error Firestore: $e');
+        }
+      }
 
-    await _loadUlasan();
+      if (widget.onReviewSubmitted != null) {
+        await widget.onReviewSubmitted!();
+      }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Ulasan berhasil dikirim!',
-            style:
-                TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          backgroundColor: const Color(0xFFF7924A),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      await _checkAndShowBadges();
+      setState(() => _showXpPopup = true);
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _showXpPopup = false);
+      });
+
+      _ulasanController.clear();
+      setState(() {
+        _selectedRating = 0;
+        _isSubmitting = false;
+      });
+
+      await _loadUlasan();
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+      print('Error submitting ulasan: $e');
     }
   }
 

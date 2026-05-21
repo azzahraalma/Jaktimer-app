@@ -197,7 +197,6 @@ class _StarterScreenState extends State<StarterScreen>
             ),
           ),
 
-          //  BOTTOM WHITE SECTION 
           Expanded(
             flex: 45,
             child: SlideTransition(
@@ -219,7 +218,6 @@ class _StarterScreenState extends State<StarterScreen>
                       children: [
                         const SizedBox(height: 70),
 
-                        // Tagline
                         FadeTransition(
                           opacity: _taglineFade,
                           child: SlideTransition(
@@ -254,7 +252,6 @@ class _StarterScreenState extends State<StarterScreen>
 
                         SizedBox(height: screenHeight * 0.03),
 
-                        // Tombol Mulai
                         FadeTransition(
                           opacity: _buttonFade,
                           child: SlideTransition(

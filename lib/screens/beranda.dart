@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:jaktimer/screens/profile_screen.dart';
 
 import '../helper/database_helper.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../services/location_service.dart';
 import '../widgets/kuliner_card.dart';
 import '../widgets/ruang_card.dart';
@@ -26,21 +28,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseHelper _db = DatabaseHelper();
-  final TextEditingController _searchController = TextEditingController();
 
   Map<String, dynamic>? _user;
-  int _currentUserId = 1;
+
+  String get _currentUid => AuthService.currentUid ?? '';
 
   Position? _currentPosition;
   String _locationLabel = 'Mencari lokasi...';
   bool _locationGranted = false;
   StreamSubscription<Position>? _positionStream;
 
-  // Raw data dari DB
   List<Map<String, dynamic>> _allKuliner = [];
   List<Map<String, dynamic>> _allRuang = [];
 
-  // Data yang sudah di-sort & filter berdasarkan jarak
   List<Map<String, dynamic>> _kulinerList = [];
   List<Map<String, dynamic>> _ruangList = [];
 
@@ -49,9 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedNav = 0;
 
-  // Radius maksimal rekomendasi (meter) — ubah sesuai kebutuhan
-  static const double _maxRadiusMeters = 10000; // 10 km
-  // Jumlah item yang ditampilkan di beranda
+  static const double _maxRadiusMeters = 10000; 
   static const int _maxItemShown = 10;
 
   @override
@@ -75,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _switchToUlik() => setState(() => _selectedNav = 2);
 
   Future<void> _loadUser() async {
-    final user = await _db.getUserById(_currentUserId);
+    final user = await FirestoreService.getUser(_currentUid);
     if (mounted) setState(() => _user = user);
   }
 
@@ -86,20 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _allKuliner = kuliner;
         _allRuang = ruang;
-        // Sebelum lokasi didapat, tampilkan semua tanpa sort
         _kulinerList = kuliner.take(_maxItemShown).toList();
         _ruangList = ruang.take(_maxItemShown).toList();
       });
     }
   }
 
-  // ── Sort & filter berdasarkan jarak ──────────────────────────────────────
-  // Dipanggil setiap kali posisi user diperbarui.
-  // 1. Hitung jarak tiap item ke posisi user
-  // 2. Filter yang jaraknya <= _maxRadiusMeters
-  // 3. Sort ascending (terdekat dulu)
-  // 4. Ambil _maxItemShown teratas
-  // Kalau hasil filter kosong (semua terlalu jauh), fallback ke sort tanpa filter
   void _sortAndFilterByLocation(Position pos) {
     double? dist(Map<String, dynamic> item) {
       final lat = (item['latitude'] as num?)?.toDouble();
@@ -115,21 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     List<Map<String, dynamic>> sortedFilter(
         List<Map<String, dynamic>> source) {
-      // Pisahkan item yang punya koordinat valid
       final withCoord =
           source.where((e) => dist(e) != null).toList();
       final withoutCoord =
           source.where((e) => dist(e) == null).toList();
 
-      // Sort by jarak
       withCoord.sort((a, b) => dist(a)!.compareTo(dist(b)!));
 
-      // Filter by radius
       final filtered = withCoord
           .where((e) => dist(e)! <= _maxRadiusMeters)
           .toList();
 
-      // Kalau hasil filter kosong, pakai semua yang sudah di-sort (fallback)
       final result =
           filtered.isNotEmpty ? filtered : withCoord;
 
@@ -143,8 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
-  // ── Location ─────────────────────────────────────────────────────────────
 
   Future<void> _checkLocationAndInit() async {
     final granted = await LocationService.isPermissionGranted();
@@ -199,7 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentPosition = pos;
       _locationLabel = _inferAreaLabel(pos.latitude, pos.longitude);
     });
-    // Sort ulang setiap posisi diperbarui
     _sortAndFilterByLocation(pos);
   }
 
@@ -240,13 +223,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     _searchDebounce?.cancel();
     _positionStream?.cancel();
     super.dispose();
   }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +253,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => DailyCheckinScreen(
-                                    userId: _currentUserId,
                                     onSwitchToUlik: _switchToUlik,
                                   ),
                                 ),
@@ -286,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SearchScreen(),
                     const UlikScreen(),
-                    ProfileScreen(userId: _currentUserId),
+                    const ProfileScreen(),
                   ],
                 ),
               ],
@@ -305,7 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
@@ -328,7 +306,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 14),
 
-                  // LOCATION
                   GestureDetector(
                     onTap: () {
                       if (!_locationGranted) _showLocationDialog();
@@ -387,7 +364,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            // KULINER
             _buildSectionHeader(
               title: 'Rekomendasi Kuliner di Sekitarmu',
             ),
@@ -417,7 +393,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
-            // BUTTON KULINER
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Align(
@@ -450,7 +425,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 24),
 
-            // RUANG TERBUKA
             _buildSectionHeader(
               title: 'Rekomendasi Ruang Terbuka di Sekitarmu',
             ),
@@ -480,7 +454,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
-            // BUTTON RUANG
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Align(

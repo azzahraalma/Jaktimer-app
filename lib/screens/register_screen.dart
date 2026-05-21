@@ -1,14 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../helper/database_helper.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'starter_screen.dart';
 import 'beranda.dart';
-
-// ─────────────────────────────────────────────
-//  TERMS DIALOG WIDGET
-// ─────────────────────────────────────────────
 
 class TermsDialog extends StatelessWidget {
   const TermsDialog({super.key});
@@ -68,7 +63,6 @@ class TermsDialog extends StatelessWidget {
     ),
   ];
 
-  /// Cara pakai: TermsDialog.show(context)
   static void show(BuildContext context) {
     showDialog(
       context: context,
@@ -90,7 +84,6 @@ class TermsDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ──────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -132,7 +125,6 @@ class TermsDialog extends StatelessWidget {
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 4),
 
-            // ── Scrollable Content ───────────────
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.45,
@@ -154,7 +146,6 @@ class TermsDialog extends StatelessWidget {
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 16),
 
-            // ── CTA Button ───────────────────────
             SizedBox(
               width: double.infinity,
               height: 46,
@@ -184,10 +175,6 @@ class TermsDialog extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-//  PRIVATE HELPER MODELS & WIDGETS
-// ─────────────────────────────────────────────
 
 class _TermSection {
   final String title;
@@ -226,10 +213,6 @@ class _SectionTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-//  REGISTER SCREEN
-// ─────────────────────────────────────────────
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -263,33 +246,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email    = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty)                     return _showSnack('Username tidak boleh kosong');
+    if (username.isEmpty)                      return _showSnack('Username tidak boleh kosong');
     if (email.isEmpty || !email.contains('@')) return _showSnack('Email tidak valid');
-    if (password.length < 8)                  return _showSnack('Password minimal 8 karakter');
-    if (!_agreedToTerms)                      return _showSnack('Harap setujui Syarat dan Keamanan');
+    if (password.length < 8)                   return _showSnack('Password minimal 8 karakter');
+    if (!_agreedToTerms)                       return _showSnack('Harap setujui Syarat dan Keamanan');
 
     setState(() => _isLoading = true);
 
     try {
-      final db = DatabaseHelper();
-
-      final newId = await db.registerUser({
-        'username'          : username,
-        'email'             : email,
-        'password'          : password,
-        'level'             : 1,
-        'xp'                : 0,
-        'level_name'        : 'Explorer Muda',
-        'avatar_url'        : 'https://api.dicebear.com/7.x/adventurer/png?seed=$username',
-        'image_path'        : null,
-        'security_question' : null,
-        'security_answer'   : null,
-      });
-
-      if (!mounted) return;
-
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('userId', newId);
+      await AuthService.registerUser(
+        username: username,
+        email: email,
+        password: password,
+      );
 
       if (!mounted) return;
 
@@ -320,8 +289,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  // ── Build ──────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -383,8 +350,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Header ────────────────────────────────
-
   Widget _buildHeader(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 4),
@@ -411,8 +376,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Mascot ────────────────────────────────
-
   Widget _buildMascot() {
     return Center(
       child: SizedBox(
@@ -428,8 +391,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  // ── Form Fields ───────────────────────────
 
   Widget _buildLabel(String text) {
     return Padding(
@@ -507,8 +468,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Checkbox + Terms ──────────────────────
-
   Widget _buildCheckbox() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -560,8 +519,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Submit Button ─────────────────────────
-
   Widget _buildSubmitButton({
     required String label,
     VoidCallback? onPressed,
@@ -600,8 +557,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  // ── Alt Link ──────────────────────────────
 
   Widget _buildAltLink({
     required String prefix,

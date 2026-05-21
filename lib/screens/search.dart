@@ -64,15 +64,12 @@ class _SearchScreenState extends State<SearchScreen>
     _animController.forward();
   }
 
-  //  LOCATION 
 
   Future<void> _initLocation() async {
     try {
-      // Cek apakah location service aktif
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
 
-      // Cek dan minta permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -97,8 +94,6 @@ class _SearchScreenState extends State<SearchScreen>
     }
   }
 
-  //  REKOMENDASI 
-
   Future<void> _loadRekomendasi() async {
     final kuliner = await _db.getKuliner();
     final ruang = await _db.getRuangTerbuka();
@@ -111,8 +106,6 @@ class _SearchScreenState extends State<SearchScreen>
     if (!mounted) return;
     setState(() => _rekomendasi = mixed);
   }
-
-  //  SEARCH 
 
   void _onSearchChanged(String query) {
     _debounce?.cancel();
@@ -159,8 +152,6 @@ class _SearchScreenState extends State<SearchScreen>
     });
   }
 
-  //  DISTANCE 
-
   double? _getDistance(Map<String, dynamic> item) {
     if (_userPosition == null) return null;
 
@@ -178,8 +169,6 @@ class _SearchScreenState extends State<SearchScreen>
       lng,
     );
   }
-
-  //  FAB: pilih tambah apa 
 
   void _showTambahPicker() {
     showModalBottomSheet(
@@ -268,8 +257,6 @@ class _SearchScreenState extends State<SearchScreen>
     super.dispose();
   }
 
-  //  UI 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -325,8 +312,6 @@ class _SearchScreenState extends State<SearchScreen>
       ),
     );
   }
-
-  //  HEADER 
 
   Widget _buildHeader() {
     return Padding(
@@ -397,8 +382,6 @@ class _SearchScreenState extends State<SearchScreen>
       ),
     );
   }
-
-  //  TAB 
 
   Widget _buildTabs() {
     return Padding(
@@ -474,8 +457,6 @@ class _SearchScreenState extends State<SearchScreen>
       ),
     );
   }
-
-  //  REKOMENDASI 
 
   Widget _buildRekomendasi() {
     if (_rekomendasi.isEmpty) {
@@ -554,8 +535,6 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  //  SEARCH RESULT 
-
   Widget _buildSearchResults() {
     if (_isSearching) {
       return const Center(
@@ -630,8 +609,6 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 }
-
-// Picker option tile
 
 class _PickerOption extends StatelessWidget {
   final IconData icon;

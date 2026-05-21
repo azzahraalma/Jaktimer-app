@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
-import '../helper/database_helper.dart';
-import '../helper/badge_helper.dart';
+import '../services/auth_service.dart';
+import '../services/firestore_service.dart';
 import '../widgets/xp_popup.dart';
-import '../widgets/badge_popup.dart';
 import 'jelajah_kuliner.dart';
 import 'jelajah_ruang.dart';
 
 class DailyCheckinScreen extends StatefulWidget {
-  final int userId;
   final VoidCallback? onSwitchToUlik;
 
   const DailyCheckinScreen({
     super.key,
-    required this.userId,
     this.onSwitchToUlik,
   });
 
@@ -23,8 +19,9 @@ class DailyCheckinScreen extends StatefulWidget {
 }
 
 class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
-  final DatabaseHelper _db = DatabaseHelper();
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  String get _uid => AuthService.currentUid ?? '';
 
   Map<String, dynamic>? _user;
   List<Map<String, dynamic>> _weeklyCheckin = [];
@@ -33,9 +30,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   bool _showXpPopup = false;
   int _popupXp = 0;
   String _popupLabel = '';
-
-  final List<Map<String, String>> _pendingBadges = [];
-  bool _showingBadge = false;
 
   static const Map<String, int> _misiXp = {
     'kuis_artikel': 50,
@@ -47,6 +41,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
   };
 
   static const List<int> _xpPerHari = [10, 15, 20, 25, 30, 35, 50];
+
   static const List<int> _xpThresholds = [0, 1000, 2000, 3000, 5000, 99999];
 
   static int _levelFromXp(int xp) {
@@ -67,14 +62,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     }
   }
 
-  String get _todayKey {
-    final now = DateTime.now();
-    return '${now.year}_${now.month}_${now.day}';
-  }
-
-  String get _keyKuisResult => 'quiz_result_${widget.userId}_$_todayKey';
-  String get _keyArtikelXp => 'artikel_xp_${widget.userId}_$_todayKey';
-
   @override
   void initState() {
     super.initState();
@@ -87,123 +74,89 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     super.dispose();
   }
 
-  // ── SOUND ──────────────────────────────────────────────
-
   Future<void> _playXpSound() async {
     try {
       await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('sound/notification/xp_sound.mp3'));
+      await _audioPlayer.play(AssetSource('sound/notification.mp3'));
     } catch (_) {}
   }
-
-  Future<void> _playBadgeSound() async {
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('sound/notification/badge_sound.mp3'));
-    } catch (_) {}
-  }
-
-  // ── LOAD ───────────────────────────────────────────────
 
   Future<void> _load() async {
+    if (_uid.isEmpty) return;
     setState(() => _isLoading = true);
-    final user = await _db.getUserById(widget.userId);
-    final weekly = await _db.getWeeklyCheckin(widget.userId);
-    final Map<String, bool> status = {};
 
-    for (final kode in _misiXp.keys) {
-      bool done = await _db.isMisiCompleted(widget.userId, kode);
+    try {
+      final results = await Future.wait([
+        FirestoreService.getUser(_uid),
+        FirestoreService.getWeeklyCheckin(_uid),
+        FirestoreService.getMisiSelesaiHariIni(_uid),
+      ]);
 
-      if (!done && kode == 'kuis_artikel') {
-        final prefs = await SharedPreferences.getInstance();
-        final savedResult = prefs.getString(_keyKuisResult);
-        if (savedResult != null && savedResult.isNotEmpty) {
-          await _completeMisiSilent('kuis_artikel', _misiXp['kuis_artikel']!);
-          done = true;
+      final user = results[0] as Map<String, dynamic>?;
+      final weekly = results[1] as List<Map<String, dynamic>>;
+      final misiSelesai = results[2] as List<String>;
+
+      final Map<String, bool> status = {};
+      for (final kode in _misiXp.keys) {
+        status[kode] = misiSelesai.contains(kode);
+      }
+
+      if (!status['kuis_artikel']!) {
+        final kuisDone = await FirestoreService.hasKuisHarianSelesaiHariIni(_uid);
+        if (kuisDone) {
+          await FirestoreService.completeMisi(_uid, 'kuis_artikel');
+          status['kuis_artikel'] = true;
+        }
+      }
+      if (!status['baca_artikel']!) {
+        final artikelDone = await FirestoreService.hasArtikelXpClaimed(_uid);
+        if (artikelDone) {
+          await FirestoreService.completeMisi(_uid, 'baca_artikel');
+          status['baca_artikel'] = true;
         }
       }
 
-      if (!done && kode == 'baca_artikel') {
-        final prefs = await SharedPreferences.getInstance();
-        final artikelClaimed = prefs.getBool(_keyArtikelXp) ?? false;
-        if (artikelClaimed) {
-          await _completeMisiSilent('baca_artikel', _misiXp['baca_artikel']!);
-          done = true;
-        }
-      }
-
-      status[kode] = done;
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _weeklyCheckin = weekly;
+        _misiStatus = status;
+        _isLoading = false;
+      });
+    } catch (error) {
+      print('DailyCheckinScreen._load failed: $error');
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak dapat memuat data harian. Coba lagi nanti.')),
+      );
     }
-
-    setState(() {
-      _user = user;
-      _weeklyCheckin = weekly;
-      _misiStatus = status;
-      _isLoading = false;
-    });
   }
-
-  Future<void> _completeMisiSilent(String kode, int xp) async {
-    await _db.completeMisi(widget.userId, kode);
-  }
-
-  // ── BADGE QUEUE ────────────────────────────────────────
-
-  void _enqueueBadges(List<Map<String, String>> badges) {
-    _pendingBadges.addAll(badges);
-    if (!_showingBadge) _showNextBadge();
-  }
-
-  void _showNextBadge() {
-    if (_pendingBadges.isEmpty) {
-      setState(() => _showingBadge = false);
-      return;
-    }
-    setState(() => _showingBadge = true);
-    final badge = _pendingBadges.removeAt(0);
-
-    _playBadgeSound();
-
-    final overlay = Overlay.of(context);
-    late OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (_) => Positioned(
-        bottom: 120,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: BadgePopup(
-            badgeName: badge['name'] ?? '',
-            badgeIcon: badge['icon'] ?? '🏅',
-            deskripsi: badge['deskripsi'] ?? '',
-            onDismiss: () {
-              entry.remove();
-              Future.delayed(const Duration(milliseconds: 400), _showNextBadge);
-            },
-          ),
-        ),
-      ),
-    );
-    overlay.insert(entry);
-  }
-
-  // ── ACTIONS ────────────────────────────────────────────
 
   Future<void> _handleCheckin() async {
-    final success = await _db.dailyCheckin(widget.userId);
-    if (success) {
-      await _load();
-      final streak = await _db.getCurrentStreak(widget.userId);
-      final xp = _db.xpForStreak(streak);
-      _showXp(xp, 'Daily Check-in!');
+    if (_uid.isEmpty) return;
 
-      final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId);
-      if (newBadges.isNotEmpty) {
-        Future.delayed(const Duration(seconds: 2), () {
-          _enqueueBadges(newBadges);
-        });
+    try {
+      final success = await FirestoreService.dailyCheckin(_uid);
+      if (success) {
+        await _load();
+        final streak = await FirestoreService.getCurrentStreak(_uid);
+        final xp = _xpForStreak(streak);
+        _showXp(xp, 'Daily Check-in! 📅');
       }
+    } catch (error) {
+      print('DailyCheckinScreen._handleCheckin failed: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Check-in gagal. Periksa koneksi dan coba lagi.')),
+      );
     }
+  }
+
+  int _xpForStreak(int streak) {
+    if (streak <= 0) return _xpPerHari[0];
+    if (streak <= _xpPerHari.length) return _xpPerHari[streak - 1];
+    return _xpPerHari.last;
   }
 
   void _showXp(int xp, String label) {
@@ -217,21 +170,13 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
 
   Future<void> _completeMisi(String kode, int xp) async {
     final alreadyDone = _misiStatus[kode] ?? false;
-    if (alreadyDone) return;
+    if (alreadyDone || _uid.isEmpty) return;
 
-    final success = await _db.completeMisi(widget.userId, kode);
+    final success = await FirestoreService.completeMisi(_uid, kode);
     if (success) {
-      await _db.updateUserXp(widget.userId, xp);
-      await _db.logXp(widget.userId, xp, 'Misi: $kode');
+      await FirestoreService.addXp(_uid, xp, keterangan: 'Misi: $kode');
       setState(() => _misiStatus[kode] = true);
       _showXp(xp, _misiLabel(kode));
-
-      final newBadges = await BadgeHelper.checkAndAwardBadges(widget.userId);
-      if (newBadges.isNotEmpty) {
-        Future.delayed(const Duration(seconds: 2), () {
-          _enqueueBadges(newBadges);
-        });
-      }
     }
   }
 
@@ -247,8 +192,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     }
   }
 
-  // ── XP HELPERS ─────────────────────────────────────────
-
   int get _xpHariIni {
     int total = 0;
     _misiStatus.forEach((kode, done) {
@@ -259,7 +202,9 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       (d) => d['day'] == todayLabel,
       orElse: () => {'checked': false, 'xp': 0},
     );
-    if (todayRow['checked'] == true) total += todayRow['xp'] as int;
+    if (todayRow['checked'] == true) {
+      total += todayRow['xp'] as int;
+    }
     return total;
   }
 
@@ -282,9 +227,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     return remaining < 0 ? 0 : remaining;
   }
 
-  static const List<String> _dayOrder = [
-    'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'
-  ];
+  static const List<String> _dayOrder = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   int _hariKeBerapa(String dayLabel) {
     int firstCheckedIdx = -1;
@@ -298,15 +241,18 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
         break;
       }
     }
+
     if (firstCheckedIdx == -1) {
       final todayIdx = _dayOrder.indexOf(_todayLabel());
       final targetIdx = _dayOrder.indexOf(dayLabel);
       if (todayIdx == -1 || targetIdx == -1) return 1;
       return (targetIdx - todayIdx + 7) % 7 + 1;
     }
+
     final targetIdx = _dayOrder.indexOf(dayLabel);
     if (targetIdx == -1) return 1;
-    return (targetIdx - firstCheckedIdx + 7) % 7 + 1;
+    final diff = (targetIdx - firstCheckedIdx + 7) % 7;
+    return diff + 1;
   }
 
   int _xpUntukHari(String dayLabel) {
@@ -314,7 +260,19 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     return _xpPerHari[hariKe - 1];
   }
 
-  // ── BUILD ──────────────────────────────────────────────
+  String _todayLabel() {
+    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    return days[DateTime.now().weekday - 1];
+  }
+
+  bool _hasCheckedInToday() {
+    final label = _todayLabel();
+    final today = _weeklyCheckin.firstWhere(
+      (d) => d['day'] == label,
+      orElse: () => {'checked': false},
+    );
+    return today['checked'] as bool;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +283,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
       );
     }
 
-    final int xp = _user?['xp'] as int? ?? 0;
+    final int xp = (_user?['xp'] as num? ?? 0).toInt();
     final int level = _levelFromXp(xp);
     final String levelName = _levelNameFromLevel(level);
     final String username = _user?['username'] as String? ?? 'User';
@@ -355,7 +313,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                             'Jelajah Bareng Timo',
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 20,
+                              fontSize: 20,                              
                               color: Color(0xFFF7924A),
                             ),
                           ),
@@ -410,8 +368,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     );
   }
 
-  // ── WIDGETS ────────────────────────────────────────────
-
   Widget _buildTimoCard({
     required String username,
     required int level,
@@ -421,7 +377,24 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     required double progress,
     required int xpKurang,
   }) {
-    final mascotAsset = DatabaseHelper.getMascotAsset(level);
+
+  final String mascotAsset;
+  switch (level) {
+    case 5:
+      mascotAsset = 'assets/images/mascot/timo_4.png';
+      break;
+    case 4:
+      mascotAsset = 'assets/images/mascot/timo_3.png';
+      break;
+    case 3:
+      mascotAsset = 'assets/images/mascot/timo_2.png';
+      break;
+    case 2:
+      mascotAsset = 'assets/images/mascot/timo_5.png';
+      break;
+    default:
+      mascotAsset = 'assets/images/mascot/timo_6.png';
+  }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -448,13 +421,11 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Si Timo',
-                style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    color: Color(0xFFF7924A)),
-              ),
+              const Text('Si Timo',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: Color(0xFFF7924A))),
               const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -463,13 +434,11 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: const Color(0xFFFBD2B6)),
                 ),
-                child: Text(
-                  'Lv.$level',
-                  style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFF7924A)),
-                ),
+                child: Text('Lv.$level',
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFF7924A))),
               ),
             ],
           ),
@@ -555,7 +524,8 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                       level < 5
                           ? 'Menuju ${_levelNameFromLevel(level + 1)}'
                           : 'Level Maksimum! 🎉',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF999999)),
                     ),
                   ],
                 ),
@@ -651,20 +621,6 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
     );
   }
 
-  bool _hasCheckedInToday() {
-    final label = _todayLabel();
-    final today = _weeklyCheckin.firstWhere(
-      (d) => d['day'] == label,
-      orElse: () => {'checked': false},
-    );
-    return today['checked'] as bool;
-  }
-
-  String _todayLabel() {
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    return days[DateTime.now().weekday - 1];
-  }
-
   Widget _buildDayItem({
     required String dayLabel,
     required bool checked,
@@ -738,6 +694,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                   fontSize: 19,
                   color: Color(0xFF1A1A2E))),
           const SizedBox(height: 14),
+
           _buildMisiCard(
             icon: Icons.quiz_outlined,
             title: 'Kerjakan kuis di artikel',
@@ -750,6 +707,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             },
           ),
           const SizedBox(height: 12),
+
           _buildMisiCard(
             icon: Icons.article_outlined,
             title: 'Baca artikel hari ini',
@@ -762,6 +720,7 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
             },
           ),
           const SizedBox(height: 12),
+
           _buildMisiCard(
             icon: Icons.rate_review_outlined,
             title: 'Tambah review kuliner',
@@ -773,18 +732,17 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => JelajahKulinerScreen(
-                    misiKode: 'tambah_review_kuliner',
-                    userId: widget.userId,
                     onMisiSelesai: () async {
                       await _completeMisi('tambah_review_kuliner', 70);
-                      await _load();
                     },
                   ),
                 ),
               );
+              await _load();
             },
           ),
           const SizedBox(height: 12),
+
           _buildMisiCard(
             icon: Icons.park_outlined,
             title: 'Tambah review ruang terbuka',
@@ -796,18 +754,17 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => JelajahRuangScreen(
-                    misiKode: 'tambah_review_ruang',
-                    userId: widget.userId,
                     onMisiSelesai: () async {
                       await _completeMisi('tambah_review_ruang', 70);
-                      await _load();
                     },
                   ),
                 ),
               );
+              await _load();
             },
           ),
           const SizedBox(height: 12),
+
           _buildMisiCard(
             icon: Icons.add_location_alt_outlined,
             title: 'Tambahkan tempat kuliner baru',
@@ -819,20 +776,18 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => JelajahKulinerScreen(
-                    misiKode: 'tambah_kuliner',
-                    userId: widget.userId,
                     openAddForm: true,
-                    fromMisi: true,
                     onMisiSelesai: () async {
                       await _completeMisi('tambah_kuliner', 100);
-                      await _load();
                     },
                   ),
                 ),
               );
+              await _load();
             },
           ),
           const SizedBox(height: 12),
+
           _buildMisiCard(
             icon: Icons.add_location_outlined,
             title: 'Tambahkan ruang terbuka baru',
@@ -844,17 +799,14 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => JelajahRuangScreen(
-                    misiKode: 'tambah_ruang',
-                    userId: widget.userId,
                     openAddForm: true,
-                    fromMisi: true,
                     onMisiSelesai: () async {
                       await _completeMisi('tambah_ruang', 100);
-                      await _load();
                     },
                   ),
                 ),
               );
+              await _load();
             },
           ),
         ],
