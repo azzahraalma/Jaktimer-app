@@ -16,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController    = TextEditingController();
   final _passwordController = TextEditingController();
+  final _scrollController   = ScrollController();
 
   bool _obscurePassword = true;
   bool _isLoading       = false;
@@ -29,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -76,12 +78,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _sendResetPassword() async {
     final email = _emailController.text.trim();
-    
+
     if (email.isEmpty) {
       _showSnack('Masukkan email terlebih dahulu');
       return;
     }
-    
+
     if (!email.contains('@')) {
       _showSnack('Format email tidak valid');
       return;
@@ -126,81 +128,93 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = bottomInset > 0;
+
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader('Masuk'),
-              const SizedBox(height: 24),
-              _buildMascot(),
-              const SizedBox(height: 40),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('Email'),
-                    _buildTextField(
-                      controller: _emailController,
-                      hint: 'example@gmail.com',
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildLabel('Password'),
-                    _buildPasswordField(),
-                    const SizedBox(height: 8),
-                    
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _isSendingReset ? null : _sendResetPassword,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          controller: _scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader('Masuk'),
+                const SizedBox(height: 24),
+                if (!isKeyboardOpen) ...[
+                  _buildMascot(),
+                  const SizedBox(height: 40),
+                ] else
+                  const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('Email'),
+                      _buildTextField(
+                        controller: _emailController,
+                        hint: 'example@gmail.com',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildLabel('Password'),
+                      _buildPasswordField(),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _isSendingReset ? null : _sendResetPassword,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: _isSendingReset
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: _orange,
+                                  ),
+                                )
+                              : const Text(
+                                  'Lupa Password?',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _orange,
+                                  ),
+                                ),
                         ),
-                        child: _isSendingReset
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: _orange,
-                                ),
-                              )
-                            : const Text(
-                                'Lupa Password?',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _orange,
-                                ),
-                              ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    _buildSubmitButton(
-                      label: 'Masuk',
-                      onPressed: _isLoading ? null : _doLogin,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildAltLink(
-                      prefix: 'Belum Punya akun? ',
-                      linkText: 'Daftar',
-                      onTap: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                      const SizedBox(height: 20),
+                      _buildSubmitButton(
+                        label: 'Masuk',
+                        onPressed: _isLoading ? null : _doLogin,
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                      const SizedBox(height: 20),
+                      _buildAltLink(
+                        prefix: 'Belum Punya akun? ',
+                        linkText: 'Daftar',
+                        onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterScreen()),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -337,8 +351,8 @@ class _LoginScreenState extends State<LoginScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: _orange,
           disabledBackgroundColor: _orange.withOpacity(0.6),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14)),
           elevation: 0,
         ),
         child: _isLoading

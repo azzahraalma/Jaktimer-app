@@ -51,7 +51,7 @@ class _BadgePopupState extends State<BadgePopup>
 
   Future<void> _playSound() async {
     try {
-      await _audioPlayer.play(AssetSource('sound/notification/badge_sound.mp3'));
+      await _audioPlayer.play(AssetSource('sound/notification.mp3'));
     } catch (_) {}
   }
 

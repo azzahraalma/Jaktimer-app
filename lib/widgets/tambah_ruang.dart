@@ -12,6 +12,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 
 import '../helper/database_helper.dart';
+import '../widgets/xp_popup.dart';
 
 Future<void> showTambahRuangSheet(
   BuildContext context, {
@@ -172,6 +173,11 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
   bool _showDropdown = false;
   Timer? _debounce;
 
+  // XP popup state
+  bool _showXpPopup = false;
+  int _popupXp = 0;
+  String _popupLabel = '';
+
   static bool _isInJakTim(double lat, double lon) =>
       lat >= -6.37 && lat <= -6.19 && lon >= 106.82 && lon <= 106.98;
 
@@ -205,7 +211,7 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
     _jamTutupController.dispose();
     _kategoriController.dispose();
     _searchController.dispose();
-    _tagsController.dispose(); 
+    _tagsController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -300,6 +306,15 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  void _triggerXpPopup(int xp, String label) {
+    if (!mounted) return;
+    setState(() {
+      _popupXp = xp;
+      _popupLabel = label;
+      _showXpPopup = true;
+    });
   }
 
   Future<void> _onSearchChanged(String value) async {
@@ -467,20 +482,30 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
 
     try {
       await _db.insertRuangTerbuka(data);
-      
+
+      bool xpGranted = false;
+
       if (userId != null) {
         try {
           final misiSelesai = await FirestoreService.getMisiSelesaiHariIni(userId);
           if (!misiSelesai.contains('tambah_ruang')) {
             await FirestoreService.completeMisi(userId, 'tambah_ruang');
             await FirestoreService.addXp(userId, 100, keterangan: 'Misi: tambah_ruang');
+            xpGranted = true;
           }
         } catch (e) {
           print('Error Firestore: $e');
         }
       }
-      
+
       setState(() => _isSaving = false);
+
+      if (xpGranted && mounted) {
+        _triggerXpPopup(100, 'Misi: Tambah ruang terbuka baru 🌳');
+        await Future.delayed(const Duration(milliseconds: 1800));
+      }
+
+      if (!mounted) return;
 
       if (widget.onSubmit != null) {
         widget.onSubmit!(data);
@@ -685,6 +710,22 @@ class _RuangFormBodyState extends State<_RuangFormBody> {
             ],
           ),
         ),
+        // XP Popup — muncul di tengah atas tombol simpan
+        if (_showXpPopup)
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: XpPopup(
+                xp: _popupXp,
+                label: _popupLabel,
+                onDismiss: () {
+                  if (mounted) setState(() => _showXpPopup = false);
+                },
+              ),
+            ),
+          ),
         Positioned(
           bottom: 0,
           left: 0,

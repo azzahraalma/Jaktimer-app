@@ -5,11 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'firebase_options.dart';
 import 'screens/beranda.dart';
 import 'screens/starter_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -187,32 +186,24 @@ class _AnimatedSplashScreenState
     await _navigateNext();
   }
 
-  Future<void> _navigateNext() async {
-    final prefs = await SharedPreferences.getInstance();
+Future<void> _navigateNext() async {
+  final user = FirebaseAuth.instance.currentUser;
 
-    final uid = prefs.getString('uid');
+  if (!mounted) return;
 
-    if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) =>
-            uid != null && uid.isNotEmpty
-                ? const HomeScreen()
-                : const StarterScreen(),
-        transitionDuration:
-            const Duration(milliseconds: 400),
-        transitionsBuilder:
-            (_, anim, __, child) =>
-                FadeTransition(
-          opacity: anim,
-          child: child,
-        ),
-      ),
-    );
-  }
-
+  Navigator.pushReplacement(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (_, __, ___) =>
+          user != null
+              ? const HomeScreen()
+              : const StarterScreen(),
+      transitionDuration: const Duration(milliseconds: 400),
+      transitionsBuilder: (_, anim, __, child) =>
+          FadeTransition(opacity: anim, child: child),
+    ),
+  );
+}
   @override
   void dispose() {
     _ctrl.removeListener(_onAnimationTick);

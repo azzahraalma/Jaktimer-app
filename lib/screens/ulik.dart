@@ -7,6 +7,7 @@ import '../services/firestore_service.dart';
 import '../widgets/xp_popup.dart';
 import 'artikel_detail_screen.dart';
 import 'semua_artikel_screen.dart';
+import '../widgets/badge_popup.dart';
 
 class UlikScreen extends StatefulWidget {
   final Future<void> Function()? onArtikelSelesaiBaca;
@@ -35,8 +36,13 @@ class _UlikScreenState extends State<UlikScreen> {
 
   bool _artikelXpClaimed = false;
 
-  bool _showXpPopup = false;
+  bool _showXpPopup = false; 
   String _xpLabel = '';
+
+  bool _showBadgePopup = false;
+  String _badgeName = '';
+  String _badgeIcon = '';
+  String _badgeDeskripsi = '';
 
   String get _uid => AuthService.currentUid ?? '';
 
@@ -127,6 +133,15 @@ class _UlikScreenState extends State<UlikScreen> {
     });
   }
 
+  void _showBadge(String name, String icon, String deskripsi) {
+    setState(() {
+      _badgeName = name;
+      _badgeIcon = icon;
+      _badgeDeskripsi = deskripsi;
+      _showBadgePopup = true;
+    });
+  }
+
   Future<void> _submitKuis() async {
     if (_selectedOption == null || _submitted || _uid.isEmpty) return;
 
@@ -157,6 +172,14 @@ class _UlikScreenState extends State<UlikScreen> {
       benar ? 'Kuis Harian Benar! 🎉' : 'Tetap semangat belajar!',
     );
 
+    if (benar) {
+      Future.delayed(const Duration(milliseconds: 2500), () {
+        if (mounted) {
+          _showBadge('Kuiz Master', '🧠', 'Kamu menjawab kuis harian dengan benar!');
+        }
+      });
+    }
+
     setState(() {
       _submitted = true;
       _isBenar = benar;
@@ -177,6 +200,13 @@ class _UlikScreenState extends State<UlikScreen> {
 
       if (mounted) {
         _showXpPopupWithDelay(50, 'Baca Artikel! 📖');
+
+        Future.delayed(const Duration(milliseconds: 2500), () {
+          if (mounted) {
+            _showBadge('Pembaca Setia', '📖', 'Kamu sudah baca artikel hari ini!');
+          }
+        });
+
         setState(() {
           _artikelXpClaimed = true;
         });
@@ -287,6 +317,20 @@ class _UlikScreenState extends State<UlikScreen> {
                   xp: _xpEarned,
                   label: _xpLabel,
                   onDismiss: () => setState(() => _showXpPopup = false),
+                ),
+              ),
+            ),
+          if (_showBadgePopup)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: BadgePopup(
+                  badgeName: _badgeName,
+                  badgeIcon: _badgeIcon,
+                  deskripsi: _badgeDeskripsi,
+                  onDismiss: () => setState(() => _showBadgePopup = false),
                 ),
               ),
             ),

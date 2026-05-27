@@ -1,3 +1,4 @@
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -13,6 +14,7 @@ import '../services/firestore_service.dart';
 
 
 import '../helper/database_helper.dart';
+import '../widgets/xp_popup.dart';
 
 Future<void> showTambahKulinerSheet(
   BuildContext context, {
@@ -173,6 +175,10 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
   bool _showDropdown = false;
   Timer? _debounce;
 
+  bool _showXpPopup = false;
+  int _popupXp = 0;
+  String _popupLabel = '';
+
   static bool _isInJakTim(double lat, double lon) =>
       lat >= -6.37 && lat <= -6.19 && lon >= 106.82 && lon <= 106.98;
 
@@ -303,6 +309,15 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     );
   }
 
+  void _triggerXpPopup(int xp, String label) {
+    if (!mounted) return;
+    setState(() {
+      _popupXp = xp;
+      _popupLabel = label;
+      _showXpPopup = true;
+    });
+  }
+
   Future<void> _onSearchChanged(String value) async {
     _debounce?.cancel();
     if (value.trim().length < 2) {
@@ -431,77 +446,86 @@ class _KulinerFormBodyState extends State<_KulinerFormBody> {
     } catch (_) {}
   }
 
-Future<void> _save() async {
-  if (_namaController.text.trim().isEmpty) {
-    _showSnack('Nama tempat wajib diisi!');
-    return;
-  }
-  if (_kategoriController.text.trim().isEmpty) {
-    _showSnack('Kategori wajib diisi!');
-    return;
-  }
-
-  setState(() => _isSaving = true);
-
-  final userId = AuthService.currentUid;
-  int addedBy = int.tryParse(userId ?? '1') ?? 1;
-
-  final data = {
-    'nama': _namaController.text.trim(),
-    'kategori': _kategoriController.text.trim(),
-    'alamat': _lokasiController.text.trim(),
-    'deskripsi': _tentangController.text.trim(),
-    'harga_min': int.tryParse(_hargaMinController.text) ?? 0,
-    'harga_max': int.tryParse(_hargaMaxController.text) ?? 0,
-    'jam_buka': _jamBukaController.text.trim(),
-    'jam_tutup': _jamTutupController.text.trim(),
-    'fasilitas': _selectedFasilitas.join(','),
-    'image_asset': _selectedImage?.path ?? 'assets/images/kuliner/placeholder.png',
-    'rating': 0.0,
-    'jumlah_ulasan': 0,
-    'latitude': _pinLatLng.latitude,
-    'longitude': _pinLatLng.longitude,
-    'is_populer': 0,
-    'added_by': addedBy,
-  };
-
-  try {
-    await _db.insertKuliner(data);
-    
-    // FIRESTORE MISI
-    if (userId != null) {
-      try {
-        final misiSelesai = await FirestoreService.getMisiSelesaiHariIni(userId);
-        if (!misiSelesai.contains('tambah_kuliner')) {
-          await FirestoreService.completeMisi(userId, 'tambah_kuliner');
-          await FirestoreService.addXp(userId, 100, keterangan: 'Misi: tambah_kuliner');
-        }
-      } catch (e) {
-        print('Error Firestore: $e');
-      }
+  Future<void> _save() async {
+    if (_namaController.text.trim().isEmpty) {
+      _showSnack('Nama tempat wajib diisi!');
+      return;
     }
-    
-    setState(() => _isSaving = false);
-
-    if (widget.onSubmit != null) {
-      widget.onSubmit!(data);
+    if (_kategoriController.text.trim().isEmpty) {
+      _showSnack('Kategori wajib diisi!');
       return;
     }
 
-    if (widget.fromMisi) {
-      widget.onClose?.call();
-      Navigator.pop(context);
-      await Future.delayed(const Duration(milliseconds: 300));
-      widget.onMisiSelesai?.call();
-    } else {
-      widget.onClose?.call();
-      Navigator.pop(context);
+    setState(() => _isSaving = true);
+
+    final userId = AuthService.currentUid;
+    int addedBy = int.tryParse(userId ?? '1') ?? 1;
+
+    final data = {
+      'nama': _namaController.text.trim(),
+      'kategori': _kategoriController.text.trim(),
+      'alamat': _lokasiController.text.trim(),
+      'deskripsi': _tentangController.text.trim(),
+      'harga_min': int.tryParse(_hargaMinController.text) ?? 0,
+      'harga_max': int.tryParse(_hargaMaxController.text) ?? 0,
+      'jam_buka': _jamBukaController.text.trim(),
+      'jam_tutup': _jamTutupController.text.trim(),
+      'fasilitas': _selectedFasilitas.join(','),
+      'image_asset': _selectedImage?.path ?? 'assets/images/kuliner/placeholder.png',
+      'rating': 0.0,
+      'jumlah_ulasan': 0,
+      'latitude': _pinLatLng.latitude,
+      'longitude': _pinLatLng.longitude,
+      'is_populer': 0,
+      'added_by': addedBy,
+    };
+
+    try {
+      await _db.insertKuliner(data);
+
+      bool xpGranted = false;
+
+      if (userId != null) {
+        try {
+          final misiSelesai = await FirestoreService.getMisiSelesaiHariIni(userId);
+          if (!misiSelesai.contains('tambah_kuliner')) {
+            await FirestoreService.completeMisi(userId, 'tambah_kuliner');
+            await FirestoreService.addXp(userId, 100, keterangan: 'Misi: tambah_kuliner');
+            xpGranted = true;
+          }
+        } catch (e) {
+          print('Error Firestore: $e');
+        }
+      }
+
+      setState(() => _isSaving = false);
+
+      if (xpGranted && mounted) {
+        _triggerXpPopup(100, 'Misi: Tambah tempat kuliner baru 🍽️');
+        await Future.delayed(const Duration(milliseconds: 1800));
+      }
+
+      if (!mounted) return;
+
+      if (widget.onSubmit != null) {
+        widget.onSubmit!(data);
+        return;
+      }
+
+      if (widget.fromMisi) {
+        widget.onClose?.call();
+        Navigator.pop(context);
+        await Future.delayed(const Duration(milliseconds: 300));
+        widget.onMisiSelesai?.call();
+      } else {
+        widget.onClose?.call();
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      setState(() => _isSaving = false);
+      print('Error: $e');
     }
-  } catch (e) {
-    setState(() => _isSaving = false);
-    print('Error: $e');
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -692,6 +716,21 @@ Future<void> _save() async {
             ],
           ),
         ),
+        if (_showXpPopup)
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: XpPopup(
+                xp: _popupXp,
+                label: _popupLabel,
+                onDismiss: () {
+                  if (mounted) setState(() => _showXpPopup = false);
+                },
+              ),
+            ),
+          ),
         Positioned(
           bottom: 0,
           left: 0,

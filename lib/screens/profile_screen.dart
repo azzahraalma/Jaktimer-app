@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import '../helper/database_helper.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
+  final DatabaseHelper _db = DatabaseHelper();
 
   String get _uid => AuthService.currentUid ?? '';
 
@@ -58,25 +60,47 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (_uid.isEmpty) return;
     setState(() => _isLoading = true);
 
-    final results = await Future.wait([
-      FirestoreService.getUser(_uid),
-      FirestoreService.getUserBadges(_uid),
-      FirestoreService.getTotalTempat(_uid),
-      FirestoreService.getTotalUlasan(_uid),
-      FirestoreService.getTotalArtikelDibaca(_uid),
-    ]);
+    final userFuture = FirestoreService.getUser(_uid);
+    final badgesFuture = FirestoreService.getUserBadges(_uid);
 
-    final user = results[0] as Map<String, dynamic>?;
-    final badges = results[1] as List<Map<String, dynamic>>;
-    final totalTempat = results[2] as int;
-    final totalUlasan = results[3] as int;
-    final totalArtikel = results[4] as int;
+    final user = await userFuture;
+    final badges = await badgesFuture;
+
+    int totalTempat = 0;
+    int totalUlasan = 0;
+    int totalArtikel = 0;
+
+    if (user != null) {
+      final email = user['email'] as String? ?? '';
+      final db = await _db.database;
+      final sqliteUser = await db.query(
+        'users',
+        where: 'email = ?',
+        whereArgs: [email],
+        limit: 1,
+      );
+
+      if (sqliteUser.isNotEmpty) {
+        final sqliteUserId = sqliteUser.first['id'] as int;
+
+        // Query stats langsung dari DatabaseHelper — ini yang fix masalahnya
+        final results = await Future.wait([
+          _db.getTotalTempat(sqliteUserId),
+          _db.getTotalUlasan(sqliteUserId),
+          _db.getTotalArtikelDibaca(sqliteUserId),
+        ]);
+
+        totalTempat = results[0];
+        totalUlasan = results[1];
+        totalArtikel = results[2];
+      }
+    }
 
     if (user != null) {
       final xp = (user['xp'] as num? ?? 0).toInt();
       final correctLevel = _levelFromXp(xp);
       final storedLevel = (user['level'] as num? ?? 1).toInt();
-      
+
       if (storedLevel != correctLevel) {
         await FirestoreService.updateUser(_uid, {
           'level': correctLevel,

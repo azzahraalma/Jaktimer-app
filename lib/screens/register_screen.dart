@@ -115,7 +115,6 @@ class TermsDialog extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 4),
             const Text(
               'Terakhir diperbarui: 1 Januari 2025',
@@ -124,7 +123,6 @@ class TermsDialog extends StatelessWidget {
             const SizedBox(height: 12),
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 4),
-
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.45,
@@ -141,11 +139,9 @@ class TermsDialog extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 4),
             const Divider(height: 1, color: Color(0xFFEEEEEE)),
             const SizedBox(height: 16),
-
             SizedBox(
               width: double.infinity,
               height: 46,
@@ -224,6 +220,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController    = TextEditingController();
   final _passwordController = TextEditingController();
+  final _scrollController   = ScrollController();
 
   bool _obscurePassword = true;
   bool _agreedToTerms   = false;
@@ -238,6 +235,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -292,58 +290,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = bottomInset > 0;
+
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader('Daftar'),
-              const SizedBox(height: 24),
-              _buildMascot(),
-              const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('Username'),
-                    _buildTextField(
-                      controller: _usernameController,
-                      hint: 'username',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLabel('E-mail'),
-                    _buildTextField(
-                      controller: _emailController,
-                      hint: 'example@email.com',
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildLabel('Password'),
-                    _buildPasswordField(),
-                    const SizedBox(height: 14),
-                    _buildCheckbox(),
-                    const SizedBox(height: 22),
-                    _buildSubmitButton(
-                      label: 'Daftar',
-                      onPressed: _isLoading ? null : _doRegister,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildAltLink(
-                      prefix: 'Sudah Punya akun? ',
-                      linkText: 'Masuk',
-                      onTap: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+          controller: _scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: bottomInset),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader('Daftar'),
+                const SizedBox(height: 24),
+                if (!isKeyboardOpen) ...[
+                  _buildMascot(),
+                  const SizedBox(height: 32),
+                ] else
+                  const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel('Username'),
+                      _buildTextField(
+                        controller: _usernameController,
+                        hint: 'username',
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildLabel('E-mail'),
+                      _buildTextField(
+                        controller: _emailController,
+                        hint: 'example@email.com',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildLabel('Password'),
+                      _buildPasswordField(),
+                      const SizedBox(height: 14),
+                      _buildCheckbox(),
+                      const SizedBox(height: 22),
+                      _buildSubmitButton(
+                        label: 'Daftar',
+                        onPressed: _isLoading ? null : _doRegister,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildAltLink(
+                        prefix: 'Sudah Punya akun? ',
+                        linkText: 'Masuk',
+                        onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

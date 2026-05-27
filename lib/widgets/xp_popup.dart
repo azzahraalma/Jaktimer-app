@@ -45,7 +45,7 @@ class _XpPopupState extends State<XpPopup> with SingleTickerProviderStateMixin {
 
   Future<void> _playSound() async {
     try {
-      await _audioPlayer.play(AssetSource('sound/notification/xp_sound.mp3'));
+      await _audioPlayer.play(AssetSource('sound/notification.mp3'));
     } catch (_) {}
   }
 
